@@ -28,6 +28,20 @@
               </a>
             </li>
           </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a class="dropdown-toggle"
+                 data-toggle="dropdown"
+                 role="button"
+                 aria-haspopup="true"
+                 href="javascript:void(0)">
+                <%= current_user.email %> <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li><%= link_to 'Sign Out', destroy_user_session_path, :method => :delete %></li>
+              </ul>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
