@@ -12,5 +12,9 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require bootstrap.min
+//= require vis.min
 //= require turbolinks
-//= require_tree .
+//= require_self
+
+
