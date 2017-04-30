@@ -5,7 +5,7 @@ viewing, and sharing complex network diagrams/graphs.
 
 ## Documentation
 
-Please see the [Wiki](wiki/) for more comprehensive documentation regarding the architecture
+Please see the [Wiki](/rnovak1988/searchable-graph/wiki) for more comprehensive documentation regarding the architecture
 and implementation of this software
 
 
