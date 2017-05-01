@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  document: one
+  can_read: false
+  can_write: false
+
+two:
+  user: two
+  document: two
+  can_read: false
+  can_write: false

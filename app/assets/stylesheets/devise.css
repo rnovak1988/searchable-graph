@@ -1,0 +1,11 @@
+body {
+    background-color: #dedede;
+}
+
+body .container {
+    padding-top: 20vh;
+}
+
+body .container .log-in-container h2 {
+    margin-top: 0px; margin-bottom: 40px;
+}

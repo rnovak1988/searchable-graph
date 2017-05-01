@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>User:</strong>
+  <%= @permission.user %>
+</p>
+
+<p>
+  <strong>Document:</strong>
+  <%= @permission.document %>
+</p>
+
+<p>
+  <strong>Can read:</strong>
+  <%= @permission.can_read %>
+</p>
+
+<p>
+  <strong>Can write:</strong>
+  <%= @permission.can_write %>
+</p>
+
+<%= link_to 'Edit', edit_permission_path(@permission) %> |
+<%= link_to 'Back', permissions_path %>
