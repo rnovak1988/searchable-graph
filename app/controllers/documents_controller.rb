@@ -1,10 +1,11 @@
 class DocumentsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_document, only: [:show, :edit, :update, :destroy]
 
   # GET /documents
   # GET /documents.json
   def index
-    @documents = Document.all
+    @documents = current_user.documents.all
   end
 
   # GET /documents/1
@@ -25,6 +26,7 @@ class DocumentsController < ApplicationController
   # POST /documents.json
   def create
     @document = Document.new(document_params)
+    @document.user = current_user
 
     respond_to do |format|
       if @document.save
@@ -64,11 +66,15 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.find(params[:id])
+      @document = Document.where('id = ? and user_id = ?', params[:id], current_user.id).first
+      if @document.nil?
+        raise ActiveRecord::RecordNotFound.new('Not Found')
+      end
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
+
       params.require(:document).permit(:title)
     end
 end

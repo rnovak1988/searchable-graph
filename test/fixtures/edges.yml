@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  graph: one
+  node_from_id: 1
+  node_to_id: 1
+  label: MyString
+
+two:
+  graph: two
+  node_from_id: 1
+  node_to_id: 1
+  label: MyString

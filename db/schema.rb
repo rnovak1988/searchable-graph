@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170430204746) do
+ActiveRecord::Schema.define(version: 20170502223123) do
 
   create_table "documents", force: :cascade do |t|
     t.string   "title"
@@ -18,6 +18,32 @@ ActiveRecord::Schema.define(version: 20170430204746) do
     t.datetime "updated_at", null: false
     t.integer  "user_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
+  end
+
+  create_table "edges", force: :cascade do |t|
+    t.integer  "graph_id"
+    t.integer  "node_from_id"
+    t.integer  "node_to_id"
+    t.string   "label"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.index ["graph_id"], name: "index_edges_on_graph_id"
+  end
+
+  create_table "graphs", force: :cascade do |t|
+    t.integer  "document_id"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.index ["document_id"], name: "index_graphs_on_document_id"
+  end
+
+  create_table "nodes", force: :cascade do |t|
+    t.integer  "graph_id"
+    t.string   "label"
+    t.text     "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["graph_id"], name: "index_nodes_on_graph_id"
   end
 
   create_table "permissions", force: :cascade do |t|
