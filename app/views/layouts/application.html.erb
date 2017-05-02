@@ -8,7 +8,7 @@
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
   </head>
 
-  <body>
+  <body data-ng-app="graph.main">
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -58,7 +58,12 @@
                 <%= current_user.email %> <span class="caret"></span>
               </a>
               <ul class="dropdown-menu">
-                <li><%= link_to 'Sign Out', destroy_user_session_path, :method => :delete %></li>
+                <li><a href="javascript:void(0)"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
+                <li>
+                  <%= link_to destroy_user_session_path, :method => :delete do %>
+                     <span class="glyphicon glyphicon-log-out"></span> Log Out
+                  <% end %>
+                </li>
               </ul>
             </li>
           </ul>

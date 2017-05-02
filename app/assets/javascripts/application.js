@@ -13,6 +13,9 @@
 //= require jquery
 //= require jquery_ujs
 //= require bootstrap.min
+//= require angular/angular.min
+//= require angular/angular-resource.min
+//= require angular/angular-route.min
 //= require vis.min
 //= require turbolinks
 //= require_self
