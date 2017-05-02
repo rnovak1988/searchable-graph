@@ -18,7 +18,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">YOLO</a>
+          <span class="navbar-brand" >YOLO</span>
         </div>
         <div class="collapse navbar-collapse" id="sg-home-navbar-collapse">
           <ul class="nav navbar-nav">
@@ -65,14 +65,27 @@
         </div>
       </div>
     </nav>
+    <% unless notice.nil? && alert.nil? -%>
     <div class="container-fluid">
       <p class="notice"><%= notice %></p>
       <p class="alert"><%= alert %></p>
     </div>
+    <% end -%>
     <div class="container-fluid">
-      <div class="panel panel-default">
+      <div id="main-body" class="panel panel-default">
         <div class="panel-heading">
-          <div class="panel-title"></div>
+          <div class="col-sm-6">
+            <ul class="nav nav-tabs">
+              <li class="active" role="presentation"><a href="">Graphical</a></li>
+              <li role="presentation"><a href="">Data</a></li>
+            </ul>
+          </div>
+          <div class="col-sm-6">
+            <div class="input-group">
+              <span class="input-group-addon" id="search-addon"><span class="glyphicon glyphicon-search"></span><span class="sr-only">Search Parameter</span></span>
+              <input type="text" class="form-control" placeholder="Search" aria-describedby="#search-addon" />
+            </div>
+          </div>
         </div>
         <div class="panel-body">
           <%= yield %>

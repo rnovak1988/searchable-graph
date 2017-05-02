@@ -14,3 +14,20 @@
  *= require bootstrap-theme.min
  *= require_self
  */
+
+body {
+    background: #efefef;
+}
+
+body #main-body {
+    position:absolute; top: 70px; bottom: 10px; left: 20px; right: 20px;
+}
+
+body #main-body > * {
+    overflow: hidden;
+}
+
+body #main-body #toolbox {
+    position: absolute; height: 150px; left: 20px; bottom: 0px; background: #dedede;
+}
+
