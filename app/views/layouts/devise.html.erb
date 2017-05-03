@@ -11,7 +11,23 @@
 
   <body>
     <div class="container">
-        <%= yield %>
+      <% unless notice.nil? && alert.nil? -%>
+        <div class="row">
+          <div class="col-md-4 col-md-push-4">
+            <% unless notice.nil? -%>
+                <p class="alert alert-info">
+                  <%= notice %>
+                </p>
+            <% end -%>
+            <% unless alert.nil? -%>
+                <p class="alert alert-danger">
+                  <%= alert %>
+                </p>
+            <% end -%>
+          </div>
+        </div>
+      <% end -%>
+      <%= yield %>
     </div>
   </body>
 </html>

@@ -70,12 +70,15 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      document = current_user.documents.find(params[:id])
+      @document = Document.joins(:user).where({user: current_user}).find(params[:id])
     end
 
+      # query document from the database and create a structure that is conducive to serialization
     def query_document
+
       graphs = {}
       seen = {}
+
       document = Document.includes(:graphs, :nodes, :edges).joins(:user).where({user: current_user}).find(params[:id])
 
       document.nodes.each do |node|
@@ -115,7 +118,7 @@ class DocumentsController < ApplicationController
 
       end
 
-      result = {:graphs => graphs.values}
+      result = {:title => document.title, :graphs => graphs.values}
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
