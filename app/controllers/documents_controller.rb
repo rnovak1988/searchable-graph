@@ -1,6 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_document, only: [:show, :edit, :update, :destroy]
+  before_action :set_document, only: [:edit, :update, :destroy]
 
   # GET /documents
   # GET /documents.json
@@ -11,6 +11,10 @@ class DocumentsController < ApplicationController
   # GET /documents/1
   # GET /documents/1.json
   def show
+    respond_to do |format|
+      format.html
+      format.json { render :json => query_document }
+    end
   end
 
   # GET /documents/new
@@ -66,10 +70,52 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.where('id = ? and user_id = ?', params[:id], current_user.id).first
-      if @document.nil?
-        raise ActiveRecord::RecordNotFound.new('Not Found')
+      document = current_user.documents.find(params[:id])
+    end
+
+    def query_document
+      graphs = {}
+      seen = {}
+      document = Document.includes(:graphs, :nodes, :edges).joins(:user).where({user: current_user}).find(params[:id])
+
+      document.nodes.each do |node|
+
+        graph_id = node.graph.id
+
+        unless graphs.has_key? graph_id
+          graphs[graph_id] = {
+              :nodes => [],
+              :edges => []
+          }
+        end
+
+        graphs[graph_id][:nodes] << {id: node.id, label: node.label}
+
       end
+
+      document.edges.each do |edge|
+
+        graph_id = edge.graph.id
+
+        from = edge.node_from_id
+        to = edge.node_to_id
+
+        unless seen.has_key? from
+          seen[from] = []
+        end
+
+        unless seen.has_key? to
+          seen[to] = []
+        end
+
+        unless seen[from].include?(to)
+          seen[from][to] = 1
+          graphs[graph_id][:edges] << {from: from, to: to}
+        end
+
+      end
+
+      result = {:graphs => graphs.values}
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

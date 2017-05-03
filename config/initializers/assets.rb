@@ -14,3 +14,4 @@ Rails.application.config.assets.precompile += %w( bootstrap* )
 Rails.application.config.assets.precompile += %w( vis* )
 
 Rails.application.config.assets.precompile += %w( devise.css )
+Rails.application.config.assets.precompile += %w( documents.js )

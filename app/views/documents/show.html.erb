@@ -1,9 +1,6 @@
-<p id="notice"><%= notice %></p>
-
-<p>
-  <strong>Title:</strong>
-  <%= @document.title %>
-</p>
-
-<%= link_to 'Edit', edit_document_path(@document) %> |
-<%= link_to 'Back', documents_path %>
+<div id="graph-container"></div>
+<div id="toolbox" class="panel panel-default col-sm-1">
+  <div class="panel-body">
+  </div>
+</div>
+<%= javascript_include_tag 'documents' %>

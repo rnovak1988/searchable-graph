@@ -7,4 +7,8 @@ class Node < ApplicationRecord
   has_many :children, :through => :edges_from, :class_name => Node, :source => :node_to
   has_many :parents, :through => :edges_to, :class_name => Node, :source => :node_from
 
+  def edges
+    Edge.where('node_from_id = ? or node_to_id = ?', id, id)
+  end
+
 end

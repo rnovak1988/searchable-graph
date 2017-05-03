@@ -31,3 +31,6 @@ body #main-body #toolbox {
     position: absolute; height: 150px; left: 20px; bottom: 0px; background: #dedede;
 }
 
+body #main-body #graph-container {
+    position: absolute; left: 0px; right: 0px; bottom: 0px; top: 60px;
+}
