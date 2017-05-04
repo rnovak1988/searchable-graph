@@ -3,7 +3,14 @@
  * of everything else. Documents and Graph modules are their own components that exist separately
  */
 
+//= require application/common
+//= require application/graph
+//= require application/document
+//= require_self
+
 (function() {
+
+    var container = angular.module('graph.main', ['ngResource', 'ngRoute']);
 
 
 })();
