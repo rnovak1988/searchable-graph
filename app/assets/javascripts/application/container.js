@@ -14,7 +14,7 @@
      * The container is the root of the application, and handles event propogation
      * @type {angular.Module}
      */
-    var container = angular.module('graph.container', ['ngRoute', 'graph.documents']);
+    var container = angular.module('graph.container', ['ngRoute', 'graph.documents', 'graph.graphs']);
 
     var rootController = function($rootScope, $scope, $window, $location) {
 
@@ -33,7 +33,7 @@
                     break;
                 case 'select_document':
                     $scope.application_state = $window.APPLICATION_SATES.MANAGE_DOCUMENT;
-                    $location.url('/document/');
+                    $location.url('/documents/');
                     break;
                 case 'home':
                     $scope.application_state = $window.APPLICATION_SATES.HOME;
@@ -46,10 +46,20 @@
             'graph.select_document': $rootScope.$on('graph.select_document', function(event, data) {
                 $scope.application_state = $window.APPLICATION_SATES.EDIT_GRAPH;
                 $rootScope.current_document = data;
+                $location.url('/documents/' + data.id + '/edit');
+            }),
+            'graph.set_state': $rootScope.$on('graph.set_state', function(event, data) {
+                console.log(data);
+                $scope.application_state = data;
+            }),
+            'graph.esc': $rootScope.$on('graph.esc', function(event, data) {
+                $scope.navigate_to('home');
             })
         };
 
         $scope.$on('$destroy', this.listeners['graph.select_document']);
+        $scope.$on('$destroy', this.listeners['graph.set_state']);
+        $scope.$on('$destroy', this.listeners['graph.esc']);
 
     };
 
@@ -58,10 +68,14 @@
             .when('/', {
                 templateUrl: '/templates/home.html'
             })
-            .when('/document/', {
+            .when('/documents/', {
                 controller: 'documentController',
                 templateUrl: '/templates/document.html'
-            });
+            })
+            .when('/documents/:document_id/edit', {
+                controller: 'graphController',
+                templateUrl: '/templates/graph.html'
+            })
     };
 
     container.controller('rootController', ['$rootScope', '$scope', '$window', '$location', rootController]);

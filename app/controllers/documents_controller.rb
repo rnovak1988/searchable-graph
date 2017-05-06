@@ -87,6 +87,7 @@ class DocumentsController < ApplicationController
 
         unless graphs.has_key? graph_id
           graphs[graph_id] = {
+              :id => graph_id,
               :nodes => [],
               :edges => []
           }
@@ -118,7 +119,7 @@ class DocumentsController < ApplicationController
 
       end
 
-      result = {:title => document.title, :graphs => graphs.values}
+      result = {:id => document.id, :title => document.title, :graphs => graphs.values}
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
