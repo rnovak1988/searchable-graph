@@ -14,9 +14,9 @@
      * The container is the root of the application, and handles event propogation
      * @type {angular.Module}
      */
-    var container = angular.module('graph.container', ['ngRoute']);
+    var container = angular.module('graph.container', ['ngRoute', 'graph.documents']);
 
-    var rootController = function($rootScope, $scope, $window) {
+    var rootController = function($rootScope, $scope, $window, $location) {
 
         $scope.window = $window;
 
@@ -27,6 +27,30 @@
         $rootScope.current_document = null;
         $rootScope.current_graph = null;
 
+        $scope.navigate_to = function(new_state) {
+            switch(new_state) {
+                case 'create_document':
+                    break;
+                case 'select_document':
+                    $scope.application_state = $window.APPLICATION_SATES.MANAGE_DOCUMENT;
+                    $location.url('/document/');
+                    break;
+                case 'home':
+                    $scope.application_state = $window.APPLICATION_SATES.HOME;
+                    $location.url('/');
+                    break;
+            }
+        };
+
+        this.listeners = {
+            'graph.select_document': $rootScope.$on('graph.select_document', function(event, data) {
+                $scope.application_state = $window.APPLICATION_SATES.EDIT_GRAPH;
+                $rootScope.current_document = data;
+            })
+        };
+
+        $scope.$on('$destroy', this.listeners['graph.select_document']);
+
     };
 
     var routeConfig = function($routeProvider) {
@@ -35,11 +59,12 @@
                 templateUrl: '/templates/home.html'
             })
             .when('/document/', {
+                controller: 'documentController',
                 templateUrl: '/templates/document.html'
             });
     };
 
-    container.controller('rootController', ['$rootScope', '$scope', '$window', rootController]);
+    container.controller('rootController', ['$rootScope', '$scope', '$window', '$location', rootController]);
     container.config(['$routeProvider', routeConfig]);
 
 

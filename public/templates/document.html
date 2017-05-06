@@ -1,3 +1,5 @@
-<div class="panel-body">
-    DocMan
+<div id="file-browser" class="panel-body">
+    <div class="list-group">
+        <a class="list-group-item" data-ng-click="select_document(document)" href="javascript:void(0)" data-ng-repeat="document in documents">{{document.title}}</a>
+    </div>
 </div>

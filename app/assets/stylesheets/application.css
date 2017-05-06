@@ -20,7 +20,7 @@ body {
 }
 
 body #main-body {
-    position:absolute; top: 70px; bottom: 10px; left: 20px; right: 20px;
+    position:absolute; top: 70px; bottom: 10px; left: 20px; right: 20px; overflow-y: scroll;
 }
 
 body #main-body > * {
