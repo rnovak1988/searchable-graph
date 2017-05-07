@@ -81,6 +81,14 @@
             return '';
         };
 
+        this.listeners = {
+            'graph.save_document': $rootScope.$on('graph.save_document', function() {
+                console.log($scope.graph.data.nodes.get());
+            })
+        };
+
+        $scope.$on('$destroy', this.listeners['graph.save_document']);
+
     };
 
     var graphService = function($http) {

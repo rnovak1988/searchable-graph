@@ -27,6 +27,10 @@
         $rootScope.current_document = null;
         $rootScope.current_graph = null;
 
+        $scope.save_document = function() {
+            $rootScope.$emit('graph.save_document');
+        };
+
         $scope.navigate_to = function(new_state) {
             switch(new_state) {
                 case 'create_document':
