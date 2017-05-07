@@ -11,9 +11,13 @@ class DocumentsController < ApplicationController
   # GET /documents/1
   # GET /documents/1.json
   def show
-    respond_to do |format|
-      format.html
-      format.json { render :json => query_document }
+    if request.put?
+      logger.debug params.inspect
+    else
+      respond_to do |format|
+        format.html
+        format.json { render :json => query_document }
+      end
     end
   end
 
@@ -99,22 +103,14 @@ class DocumentsController < ApplicationController
 
       document.edges.each do |edge|
 
-        graph_id = edge.graph.id
+        graph_id = edge.graph_id
 
         from = edge.node_from_id
         to = edge.node_to_id
 
-        unless seen.has_key? from
-          seen[from] = []
-        end
-
-        unless seen.has_key? to
-          seen[to] = []
-        end
-
-        unless seen[from].include?(to)
-          seen[from][to] = 1
-          graphs[graph_id][:edges] << {from: from, to: to}
+        unless seen.has_key? edge
+          seen[edge] = true
+          graphs[graph_id][:edges] << {id: edge.id, graph_id: graph_id, from: from, to: to}
         end
 
       end
@@ -125,6 +121,6 @@ class DocumentsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
-      params.require(:document).permit(:title)
+      params.require(:document).permit(:title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :from, :to])
     end
 end
