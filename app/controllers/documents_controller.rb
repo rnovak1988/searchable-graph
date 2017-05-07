@@ -70,7 +70,16 @@ class DocumentsController < ApplicationController
     edges = []
 
     params[:document][:graphs].each do |g|
-      graphs[g['id']] = Graph.find(g['id'])
+      graph_id = g['id']
+      graph = nil
+
+      if graph_id.is_a? Integer
+        graph = Graph.find(g['id'])
+      else
+        graph = Graph.new(document: document)
+      end
+      graph.save!
+      graphs[g['id']] = graph
     end
 
     params[:document][:nodes].each do |n|
@@ -179,6 +188,16 @@ class DocumentsController < ApplicationController
           graphs[graph_id][:edges] << {id: edge.id, graph_id: graph_id, from: from, to: to}
         end
 
+      end
+
+      document.graphs.each do |g|
+        unless graphs.has_key? g.id
+          graphs[g.id] = {
+              :id => g.id,
+              :nodes => [],
+              :edges => []
+          }
+        end
       end
 
       result = {:id => document.id, :title => document.title, :graphs => graphs.values}

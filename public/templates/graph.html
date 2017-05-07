@@ -1,7 +1,7 @@
 <div class="panel-heading">
     <ul class="nav nav-tabs">
-        <li class="{{isActiveTab(graph)}}" role="presentation" data-ng-repeat="graph in graphs"><a href="javascript:void(0)">Graph {{graph.id}}</a></li>
-        <li role="presentation"><a href="javascript:void(0)"><span class="glyphicon glyphicon-plus-sign"></span></a></li>
+        <li class="{{isActiveTab(graph)}}" role="presentation" data-ng-repeat="graph in graphs"><a href="javascript:void(0)" data-ng-click="select_graph($index)">Graph {{$index + 1}}</a></li>
+        <li role="presentation"><a href="javascript:void(0)" data-ng-click="add_graph()"><span class="glyphicon glyphicon-plus-sign"></span></a></li>
     </ul>
 </div>
 <div class="panel-body">

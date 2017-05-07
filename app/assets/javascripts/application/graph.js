@@ -104,6 +104,42 @@
 
         })();
 
+        $scope.select_graph = function(index) {
+            var current_index = $scope.graph.index;
+            var current_graph = $scope.graphs[current_index];
+
+            if (current_graph !== undefined && current_graph !== null) {
+                current_graph.nodes = $scope.graph.data.nodes.get();
+                current_graph.edges = $scope.graph.data.edges.get();
+            }
+
+            var next_graph = $scope.graphs[index];
+
+            if (next_graph !== undefined && next_graph !== null) {
+                $scope.graph.data.nodes.clear();
+                $scope.graph.data.edges.clear();
+
+                $scope.graph.index = index;
+                $scope.graph.data.nodes.add(next_graph.nodes);
+                $scope.graph.data.edges.add(next_graph.edges);
+
+                $rootScope.current_graph = next_graph;
+            }
+        };
+
+        $scope.add_graph = function() {
+            var length = $scope.graphs.length;
+
+            var new_graph = {
+                id: 'new-graph ' + length,
+                nodes: [],
+                edges: []
+            };
+
+            $scope.graphs.push(new_graph);
+
+            $scope.select_graph(length);
+        };
 
         $scope.isActiveTab = function(graph) {
 
