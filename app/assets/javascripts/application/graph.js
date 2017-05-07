@@ -8,7 +8,21 @@
 
     var graphController = function($rootScope, $scope, $route, $location, $window, graphService) {
 
-        $scope.graph_container = document.getElementById('graph-container');
+        $scope.graph = {
+            container: document.getElementById('graph-container'),
+            network: null,
+            data: {
+                nodes: new vis.DataSet([]),
+                edges: new vis.DataSet([])
+            },
+            options: {
+                manipulation: {
+                    enabled: true
+                }
+            }
+        };
+
+        $scope.graph.network = new vis.Network($scope.graph.container, $scope.graph.data, $scope.graph.options);
 
         $scope.graphs = [];
 
@@ -18,16 +32,9 @@
                 current.hasOwnProperty('edges') &&
                 current.hasOwnProperty('nodes')) {
 
-                var data = {
-                    nodes: new vis.DataSet(current.nodes),
-                    edges: new vis.DataSet(current.edges)
-                };
+                $scope.graph.data.nodes.add(current.nodes);
+                $scope.graph.data.edges.add(current.edges);
 
-                var options = {
-
-                };
-
-                $scope.network = new vis.Network($scope.graph_container, data, options);
             }
         };
 
