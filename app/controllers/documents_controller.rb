@@ -1,6 +1,8 @@
 class DocumentsController < ApplicationController
+  before_action :set_csrf_cookie
+
   before_action :authenticate_user!
-  before_action :set_document, only: [:edit, :update, :destroy]
+  before_action :set_document, only: [:edit, :destroy]
 
   # GET /documents
   # GET /documents.json
@@ -50,15 +52,79 @@ class DocumentsController < ApplicationController
   # PATCH/PUT /documents/1
   # PATCH/PUT /documents/1.json
   def update
-    respond_to do |format|
-      if @document.update(document_params)
-        format.html { redirect_to @document, notice: 'Document was successfully updated.' }
-        format.json { render :show, status: :ok, location: @document }
-      else
-        format.html { render :edit }
-        format.json { render json: @document.errors, status: :unprocessable_entity }
-      end
+
+    # Technically, the object being transferred as part of the params[:document] parameter is
+    # the transfer object that is created as part of graph.js, so it needs to get transformed into
+    # native representation so it can be saved
+
+    seen_edges = {}
+
+    document = Document.includes(:graphs, :nodes, :edges).joins(:user).where({user: current_user}).find(params[:id])
+
+    document.title = params[:document]['title']
+
+    document.save!
+
+    graphs = {}
+    nodes = {}
+    edges = []
+
+    params[:document][:graphs].each do |g|
+      graphs[g['id']] = Graph.find(g['id'])
     end
+
+    params[:document][:nodes].each do |n|
+
+      id = n['id']
+      label = n['label']
+      graph_id = n['graph_id']
+
+      node = nil
+
+      if id.is_a? Integer
+        node = Node.find(id)
+      else
+        node = Node.new
+      end
+
+      node.label = label
+      node.graph = graphs[graph_id]
+
+      nodes[id] = node
+
+      node.save!
+    end
+
+    params[:document][:edges].each do |e|
+
+      edge = nil
+
+      id = e['id']
+      node_from = e['from']
+      node_to = e['to']
+
+      graph_id = e['graph_id']
+
+      if id.is_a? Integer
+        edge = Edge.find(id)
+      else
+        edge = Edge.new
+      end
+
+      edge.graph = graphs[graph_id]
+      edge.node_from = nodes[node_from]
+      edge.node_to = nodes[node_to]
+
+      unless seen_edges.has_key? edge
+        seen_edges[edge] = id
+      end
+
+      edge.save!
+    end
+
+    logger.debug graphs.inspect
+
+    head :no_content
   end
 
   # DELETE /documents/1
@@ -121,6 +187,17 @@ class DocumentsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
-      params.require(:document).permit(:title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :from, :to])
+      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :graph_id, :from, :to])
     end
+
+  protected
+    def set_csrf_cookie
+      if protect_against_forgery?
+        cookies['XSRF-TOKEN'] = form_authenticity_token
+      end
+    end
+
+  def verified_request?
+    super || valid_authenticity_token?(session, request.headers['X-XSRF-TOKEN'])
+  end
 end

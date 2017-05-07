@@ -25,8 +25,8 @@ class Edge < ApplicationRecord
   def hash
     result = 7
     result = 31 * result + graph.hash
-    result = 31 * result + node_from_id
-    result = 31 * result + node_to_id
+    result = 31 * result + node_from.hash
+    result = 31 * result + node_to.hash
     return result
   end
 

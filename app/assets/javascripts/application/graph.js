@@ -9,6 +9,7 @@
     var graphController = function($rootScope, $scope, $route, $location, $window, graphService) {
 
         $scope.graph = {
+            index: null,
             container: document.getElementById('graph-container'),
             network: null,
             data: {
@@ -60,6 +61,7 @@
                         $scope.graphs.push(all_graphs[i]);
                     }
                     $rootScope.current_graph = $scope.graphs[0];
+                    $scope.graph.index = 0;
                     draw_graph();
                 }
             }
@@ -85,7 +87,7 @@
                  * the application into a consistent state. If that fails, just escape back to home
                  */
                 if (route_params !== undefined && route_params !== null && route_params.hasOwnProperty('document_id')) {
-                    var document_id = parseInt(params['document_id']);
+                    var document_id = parseInt(route_params['document_id']);
                     graphService.loadDocument(document_id, function(document) {
 
                         $rootScope.current_document = document;
@@ -114,7 +116,15 @@
 
         this.listeners = {
             'graph.save_document': $rootScope.$on('graph.save_document', function() {
-                console.log($scope.graph.data.nodes.get());
+
+                var current_index = $scope.graph.index;
+
+                $scope.graphs[current_index].nodes = $scope.graph.data.nodes.get();
+                $scope.graphs[current_index].edges = $scope.graph.data.edges.get();
+
+                graphService.saveDocument($rootScope.current_document, $scope.graphs, undefined, function(errorObj) {
+                    console.log(errorObj);
+                });
             })
         };
 
@@ -135,6 +145,74 @@
                 errorCallback.call(_this, errorResponse);
             }
         });
+    };
+
+    /**
+     * to save the document, it has to be constructed from it's parts (document hasMany graphs (hasMany nodes, hasMany edges)
+     * @param document
+     * @param graphs
+     * @param successCallback
+     * @param errorCallback
+     */
+    graphService.prototype.saveDocument = function(unsaved_document, unsaved_graphs, successCallback, errorCallback) {
+        var _this = this;
+        if (unsaved_document !== undefined && unsaved_document !== null) {
+            if (unsaved_graphs !== undefined && unsaved_graphs !== null) {
+                try {
+                    var transfer_object = {
+                        id: unsaved_document.id,
+                        title: unsaved_document.title,
+                        graphs: [],
+                        nodes: [],
+                        edges: []
+                    };
+
+                    for (var i = 0; i < unsaved_graphs.length; i++) {
+                        var graph = unsaved_graphs[i];
+                        var nodes = graph.nodes;
+                        var edges = graph.edges;
+
+                        transfer_object.graphs.push({
+                            id: graph.id
+                        });
+
+                        for (var node_index = 0; node_index < nodes.length; node_index++) {
+                            var node = nodes[node_index];
+                            transfer_object.nodes.push({
+                                id: node.id,
+                                graph_id: graph.id,
+                                label: node.label
+                            });
+                        }
+
+                        for (var edge_index = 0; edge_index < edges.length; edge_index++) {
+                            var edge = edges[edge_index];
+                            transfer_object.edges.push({
+                                id: edge.id,
+                                from: edge.from,
+                                to: edge.to,
+                                graph_id: graph.id
+                            });
+                        }
+
+                    }
+
+                    _this.http.put('/documents/' + transfer_object.id, {'document': transfer_object}).then(
+                        function(successResponse) {
+                            console.log(successResponse);
+                        },
+                        function(errorResponse) {
+                            console.log(errorResponse);
+                        }
+                    );
+
+                } catch (e) {
+                    if (errorCallback !== undefined && errorCallback !== null && typeof(errorCallback) === 'function') {
+                        errorCallback.call(_this, {'error': e});
+                    }
+                }
+            }
+        }
     };
 
     graphModule.service('graphService', ['$http', graphService]);
