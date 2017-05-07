@@ -49,7 +49,6 @@
                 $location.url('/documents/' + data.id + '/edit');
             }),
             'graph.set_state': $rootScope.$on('graph.set_state', function(event, data) {
-                console.log(data);
                 $scope.application_state = data;
             }),
             'graph.esc': $rootScope.$on('graph.esc', function(event, data) {

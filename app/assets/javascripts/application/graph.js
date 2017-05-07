@@ -8,7 +8,28 @@
 
     var graphController = function($rootScope, $scope, $route, $location, $window, graphService) {
 
+        $scope.graph_container = document.getElementById('graph-container');
+
         $scope.graphs = [];
+
+        $scope.drawGraph = function() {
+            var current = $rootScope.current_graph; // alias to root scope, a lot to keep typing
+            if (current !== undefined && current !== null &&
+                current.hasOwnProperty('edges') &&
+                current.hasOwnProperty('nodes')) {
+
+                var data = {
+                    nodes: new vis.DataSet(current.nodes),
+                    edges: new vis.DataSet(current.edges)
+                };
+
+                var options = {
+
+                };
+
+                $scope.network = new vis.Network($scope.graph_container, data, options);
+            }
+        };
 
         if ($rootScope.current_document !== undefined && $rootScope.current_document !== null) {
             var importGraphs = $rootScope.current_document.graphs;
@@ -17,6 +38,8 @@
                 $scope.graphs.push(importGraphs[i]);
             }
             $rootScope.current_graph = $scope.graphs[0];
+            $scope.drawGraph();
+
         } else {
             var params = $route.current.params;
             if (params !== undefined && params !== null && params.hasOwnProperty('document_id')){
@@ -30,6 +53,8 @@
                         }
                         $rootScope.current_graph = $scope.graphs[0];
                         $rootScope.$emit('graph.set_state', $window.APPLICATION_SATES.EDIT_GRAPH);
+
+                        $scope.drawGraph();
                     });
                 } catch (e) {
                     console.log(e);
@@ -38,6 +63,7 @@
                 $rootScope.$emit('graph.esc');
             }
         }
+
 
         $scope.isActiveTab = function(graph) {
 

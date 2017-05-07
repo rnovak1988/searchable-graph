@@ -17,7 +17,6 @@
 //= require angular/angular-resource.min
 //= require angular/angular-route.min
 //= require vis.min
-//= require turbolinks
 
 //= require application/container
 
