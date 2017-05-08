@@ -16,7 +16,7 @@
      */
     var container = angular.module('graph.container', ['ngRoute', 'graph.documents', 'graph.graphs']);
 
-    var rootController = function($rootScope, $scope, $window, $location) {
+    var rootController = function($rootScope, $scope, $window, $location, graphService) {
 
         $scope.window = $window;
 
@@ -27,13 +27,29 @@
         $rootScope.current_document = null;
         $rootScope.current_graph = null;
 
+
         $scope.save_document = function() {
             $rootScope.$emit('graph.save_document');
+        };
+
+        $scope.create_document = function() {
+
+            var new_doc = {'title': 'Document Created at ' + (new Date()).toGMTString()};
+
+            graphService.newDocument(new_doc, function(resulting_doc) {
+
+                $scope.application_state = $window.APPLICATION_SATES.EDIT_GRAPH;
+                $rootScope.current_document = resulting_doc;
+                $location.url('/documents/' + resulting_doc.id + '/edit');
+
+            });
         };
 
         $scope.navigate_to = function(new_state) {
             switch(new_state) {
                 case 'create_document':
+                    console.log("about to create document...");
+                    $scope.create_document();
                     break;
                 case 'select_document':
                     $scope.application_state = $window.APPLICATION_SATES.MANAGE_DOCUMENT;
@@ -81,7 +97,7 @@
             })
     };
 
-    container.controller('rootController', ['$rootScope', '$scope', '$window', '$location', rootController]);
+    container.controller('rootController', ['$rootScope', '$scope', '$window', '$location', 'graphService', rootController]);
     container.config(['$routeProvider', routeConfig]);
 
 

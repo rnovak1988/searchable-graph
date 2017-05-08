@@ -251,6 +251,20 @@
         }
     };
 
+    graphService.prototype.newDocument = function(document, successCallback, errorCallback) {
+        console.log("in newDocument...");
+        var _this = this;
+        if (document !== undefined && document !== null && document.hasOwnProperty('title')) {
+            _this.http.post('/documents.json', document).then(function(successResponse) {
+                if (successCallback !== undefined && successCallback !== null) {
+                    successCallback.call(_this, successResponse.data);
+                }
+            }, function(errorResponse) {
+                console.log(errorResponse.statusText);
+            });
+        }
+    };
+
     graphModule.service('graphService', ['$http', graphService]);
     graphModule.controller('graphController', ['$rootScope', '$scope', '$route', '$location', '$window', 'graphService', graphController]);
 
