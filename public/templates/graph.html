@@ -7,4 +7,21 @@
 <div class="panel-body">
     <div id="graph-container">
     </div>
+    <div class="row">
+
+        <div id="edit-node-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_NODE" class="col-sm-4 ng-hide">
+            <div>
+                <div class="form-group">
+                    <label for="edit_node_label">Label</label>
+                    <input id="edit_node_label" type="text" class="form-control" data-ng-model="current_node.label" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="edit-edge-dialog" class="col-sm-4 ng-hide">
+        <div>
+
+        </div>
+    </div>
 </div>

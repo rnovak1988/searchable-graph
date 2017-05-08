@@ -33,5 +33,13 @@ body #main-body #toolbox {
 }
 
 body #main-body #graph-container {
-    position: absolute; left: 0px; right: 0px; bottom: 20px; top: 60px;
+    position: absolute; left: 0px; right: 0px; bottom: 20px; top: 65px;
+}
+
+body #main-body #edit-node-dialog, body #main-body #edit-edge-dialog {
+    position:absolute; right: 10px; top:65px; bottom:0px; background-color: #ddd;
+}
+
+body #main-body #edit-node-dialog > div , body #main-body #edit-edge-dialog > div {
+    overflow:hidden;
 }

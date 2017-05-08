@@ -8,6 +8,13 @@
 
     var graphController = function($rootScope, $scope, $route, $location, $window, graphService) {
 
+        $scope.window = $window;
+        $scope.editor_state = $window.GRAPH_STATE.BASE;
+
+        $scope.edit_callback = null;
+        $scope.current_node = null;
+        $scope.current_edge = null;
+
         $scope.graph = {
             index: null,
             container: document.getElementById('graph-container'),
@@ -18,12 +25,52 @@
             },
             options: {
                 manipulation: {
-                    enabled: true
+                    enabled: true,
+                    editNode: function(data, callback) {
+                        $scope.current_node = data;
+                        $scope.edit_callback = callback;
+                    }
                 }
-            }
+            },
+            listeners: [
+                {
+                    event: 'selectNode',
+                    handler: function(event, callback) {
+
+                        $scope.editor_state = $window.GRAPH_STATE.EDIT_NODE;
+                        $scope.current_node = $scope.graph.data.nodes.get(event.nodes[0]);
+
+                        try {
+                            $scope.$digest();
+                        } catch(e) {
+                            console.log(e);
+                        }
+                    }
+                },
+                {
+                    event: 'deselectNode',
+                    handler: function(event) {
+
+                        $scope.editor_state = $window.GRAPH_STATE.BASE;
+                        $scope.graph.data.nodes.update($scope.current_node);
+                        $scope.current_node = null;
+                        //$scope.edit_callback($scope.current_node);
+
+                        //$scope.edit_callback = null;
+                        //$scope.current_node = null;
+
+                        try {
+                            $scope.$digest();
+                        } catch(e) {
+                            console.log(e);
+                        }
+                    }
+                }
+            ]
         };
 
         $scope.graphs = [];
+
 
         (function() {
 
@@ -46,6 +93,21 @@
                     $scope.graph.data.edges.add(current_graph.edges);
 
                 }
+
+                for (var event_index = 0; event_index < $scope.graph.listeners.length; event_index++) {
+                    var event_description = $scope.graph.listeners[event_index];
+                    $scope.graph.network.on(event_description.event, event_description.handler);
+                }
+
+                /**
+                 * when destroyed, remove event listeners from the graph
+                 */
+                $scope.$on('$destroy', function() {
+                    for (var event_index = 0; event_index < $scope.graph.listeners.length; event_index++) {
+                        var event_description = $scope.graph.listeners[event_index];
+                        $scope.graph.network.off(event_description.event, event_description.handler);
+                    }
+                });
 
             }
 
