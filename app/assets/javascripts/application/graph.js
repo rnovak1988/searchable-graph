@@ -38,7 +38,13 @@
                 },
                 'deselectNode': function (event) {
                     if ($scope.editor_state === $window.GRAPH_STATE.EDIT_NODE) {
+
                         $scope.editor_state = $window.GRAPH_STATE.BASE;
+
+                        if (event === null) {
+                            $scope.graph.network.unselectAll();
+                        }
+
                         $scope.graph.data.nodes.update($scope.current_node);
                         $scope.current_node = null;
 
@@ -55,7 +61,13 @@
                 },
                 'deselectEdge': function (event) {
                     if ($scope.editor_state === $window.GRAPH_STATE.EDIT_EDGE) {
+
                         $scope.editor_state = $window.GRAPH_STATE.BASE;
+
+                        if (event === null) {
+                            $scope.graph.network.unselectAll();
+                        }
+
                         $scope.graph.data.edges.update($scope.current_edge);
                         $scope.current_edge = null;
 
@@ -93,7 +105,6 @@
                 var listeners = $scope.graph.listeners;
                 var events = Object.keys(listeners);
 
-                console.log(listeners);
                 for (var i = 0; i < events.length; i++) {
                     var event = events[i];
                     var listener = listeners[event];
@@ -119,13 +130,28 @@
              * @param all_graphs
              */
             function import_graphs(all_graphs) {
-                if (all_graphs !== undefined && all_graphs !== null) {
+                if (all_graphs !== undefined && all_graphs !== null && all_graphs.length > 0) {
                     for (var i = 0; i < all_graphs.length; i++) {
                         $scope.graphs.push(all_graphs[i]);
                     }
                     $rootScope.current_graph = $scope.graphs[0];
                     $scope.graph.index = 0;
                     draw_graph();
+                } else {
+
+                    var new_graph = {
+                        id: 'new-graph ' + 1,
+                        nodes: [],
+                        edges: []
+                    };
+
+                    $scope.graphs.push(new_graph);
+
+                    $rootScope.current_graph = $scope.graphs[0];
+                    $scope.graph.index = 0;
+                    draw_graph();
+                    $timeout();
+
                 }
             }
 
@@ -202,6 +228,7 @@
             $scope.graphs.push(new_graph);
 
             $scope.select_graph(length);
+
         };
 
         $scope.isActiveTab = function(graph) {

@@ -120,7 +120,7 @@ class DocumentsController < ApplicationController
         edge = Edge.new
       end
 
-      unless e['label'].nil? || e['label'].empty?
+      unless e['label'].nil?
         edge.label = e['label']
       end
 
@@ -134,8 +134,6 @@ class DocumentsController < ApplicationController
 
       edge.save!
     end
-
-    logger.debug graphs.inspect
 
     head :no_content
   end
