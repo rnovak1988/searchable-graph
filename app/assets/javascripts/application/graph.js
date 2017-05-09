@@ -6,12 +6,11 @@
 
     var graphModule = angular.module('graph.graphs', []);
 
-    var graphController = function($rootScope, $scope, $route, $location, $window, graphService) {
+    var graphController = function($rootScope, $scope, $route, $location, $window, $timeout, graphService) {
 
         $scope.window = $window;
         $scope.editor_state = $window.GRAPH_STATE.BASE;
 
-        $scope.edit_callback = null;
         $scope.current_node = null;
         $scope.current_edge = null;
 
@@ -25,48 +24,45 @@
             },
             options: {
                 manipulation: {
-                    enabled: true,
-                    editNode: function(data, callback) {
-                        $scope.current_node = data;
-                        $scope.edit_callback = callback;
-                    }
+                    enabled: true
                 }
             },
-            listeners: [
-                {
-                    event: 'selectNode',
-                    handler: function(event, callback) {
-
+            listeners: {
+                'selectNode': function (event) {
+                    if ($scope.editor_state === $window.GRAPH_STATE.BASE) {
                         $scope.editor_state = $window.GRAPH_STATE.EDIT_NODE;
                         $scope.current_node = $scope.graph.data.nodes.get(event.nodes[0]);
 
-                        try {
-                            $scope.$digest();
-                        } catch(e) {
-                            console.log(e);
-                        }
+                        $timeout();
                     }
                 },
-                {
-                    event: 'deselectNode',
-                    handler: function(event) {
-
+                'deselectNode': function (event) {
+                    if ($scope.editor_state === $window.GRAPH_STATE.EDIT_NODE) {
                         $scope.editor_state = $window.GRAPH_STATE.BASE;
                         $scope.graph.data.nodes.update($scope.current_node);
                         $scope.current_node = null;
-                        //$scope.edit_callback($scope.current_node);
 
-                        //$scope.edit_callback = null;
-                        //$scope.current_node = null;
+                        $timeout();
+                    }
+                },
+                'selectEdge': function (event) {
+                    if ($scope.editor_state === $window.GRAPH_STATE.BASE) {
+                        $scope.editor_state = $window.GRAPH_STATE.EDIT_EDGE;
+                        $scope.current_edge = $scope.graph.data.edges.get(event.edges[0]);
 
-                        try {
-                            $scope.$digest();
-                        } catch(e) {
-                            console.log(e);
-                        }
+                        $timeout();
+                    }
+                },
+                'deselectEdge': function (event) {
+                    if ($scope.editor_state === $window.GRAPH_STATE.EDIT_EDGE) {
+                        $scope.editor_state = $window.GRAPH_STATE.BASE;
+                        $scope.graph.data.edges.update($scope.current_edge);
+                        $scope.current_edge = null;
+
+                        $timeout();
                     }
                 }
-            ]
+            }
         };
 
         $scope.graphs = [];
@@ -94,18 +90,23 @@
 
                 }
 
-                for (var event_index = 0; event_index < $scope.graph.listeners.length; event_index++) {
-                    var event_description = $scope.graph.listeners[event_index];
-                    $scope.graph.network.on(event_description.event, event_description.handler);
+                var listeners = $scope.graph.listeners;
+                var events = Object.keys(listeners);
+
+                console.log(listeners);
+                for (var i = 0; i < events.length; i++) {
+                    var event = events[i];
+                    var listener = listeners[event];
+                    $scope.graph.network.on(event, listener);
                 }
 
                 /**
                  * when destroyed, remove event listeners from the graph
                  */
                 $scope.$on('$destroy', function() {
-                    for (var event_index = 0; event_index < $scope.graph.listeners.length; event_index++) {
-                        var event_description = $scope.graph.listeners[event_index];
-                        $scope.graph.network.off(event_description.event, event_description.handler);
+                    for (var i = 0; i < events.length; i++) {
+                        var event = events[i];
+                        $scope.graph.network.off(event, listeners[event]);
                     }
                 });
 
@@ -289,6 +290,7 @@
                                 id: edge.id,
                                 from: edge.from,
                                 to: edge.to,
+                                label: edge.label,
                                 graph_id: graph.id
                             });
                         }
@@ -328,6 +330,6 @@
     };
 
     graphModule.service('graphService', ['$http', graphService]);
-    graphModule.controller('graphController', ['$rootScope', '$scope', '$route', '$location', '$window', 'graphService', graphController]);
+    graphModule.controller('graphController', ['$rootScope', '$scope', '$route', '$location', '$window', '$timeout', 'graphService', graphController]);
 
 })();

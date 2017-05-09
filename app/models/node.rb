@@ -11,4 +11,11 @@ class Node < ApplicationRecord
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
 
+  def to_obj
+    {
+        :id => id,
+        :label => label
+    }
+  end
+
 end

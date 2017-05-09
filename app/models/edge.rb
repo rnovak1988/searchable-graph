@@ -30,4 +30,14 @@ class Edge < ApplicationRecord
     return result
   end
 
+  def to_obj
+    {
+        :id         => id,
+        :from       => node_from_id,
+        :to         => node_to_id,
+        :graph_id   => graph_id,
+        :label      => "#{label}"
+    }
+  end
+
 end

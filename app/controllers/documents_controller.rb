@@ -120,6 +120,10 @@ class DocumentsController < ApplicationController
         edge = Edge.new
       end
 
+      unless e['label'].nil? || e['label'].empty?
+        edge.label = e['label']
+      end
+
       edge.graph = graphs[graph_id]
       edge.node_from = nodes[node_from]
       edge.node_to = nodes[node_to]
@@ -172,7 +176,7 @@ class DocumentsController < ApplicationController
           }
         end
 
-        graphs[graph_id][:nodes] << {id: node.id, label: node.label}
+        graphs[graph_id][:nodes] << node.to_obj
 
       end
 
@@ -185,7 +189,7 @@ class DocumentsController < ApplicationController
 
         unless seen.has_key? edge
           seen[edge] = true
-          graphs[graph_id][:edges] << {id: edge.id, graph_id: graph_id, from: from, to: to}
+          graphs[graph_id][:edges] << edge.to_obj
         end
 
       end
@@ -206,7 +210,7 @@ class DocumentsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
-      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :graph_id, :from, :to])
+      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :graph_id, :label, :from, :to])
     end
 
   protected
