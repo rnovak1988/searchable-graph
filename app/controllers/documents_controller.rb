@@ -70,36 +70,29 @@ class DocumentsController < ApplicationController
     edges = []
 
     params[:document][:graphs].each do |g|
-      graph_id = g['id']
+
+      vis_id = g['id']
       graph = nil
 
-      if graph_id.is_a? Integer
-        graph = Graph.find(g['id'])
-      else
-        graph = Graph.new(document: document)
-      end
+      graph = document.graphs.find_or_initialize_by(vis_id: vis_id)
+
       graph.save!
-      graphs[g['id']] = graph
+      graphs[vis_id] = graph
+
     end
 
     params[:document][:nodes].each do |n|
 
-      id = n['id']
+      vis_id = n['id']
       label = n['label']
       graph_id = n['graph_id']
 
-      node = nil
-
-      if id.is_a? Integer
-        node = Node.find(id)
-      else
-        node = Node.new
-      end
+      node = document.nodes.find_or_initialize_by(vis_id: vis_id)
 
       node.label = label
       node.graph = graphs[graph_id]
 
-      nodes[id] = node
+      nodes[vis_id] = node
 
       node.save!
     end
@@ -108,28 +101,24 @@ class DocumentsController < ApplicationController
 
       edge = nil
 
-      id = e['id']
-      node_from = e['from']
-      node_to = e['to']
+      vis_id = e['id']
+      node_from_vis_id = e['from']
+      node_to_vis_id = e['to']
 
-      graph_id = e['graph_id']
+      graph_vis_id = e['graph_id']
 
-      if id.is_a? Integer
-        edge = Edge.find(id)
-      else
-        edge = Edge.new
-      end
+      edge = document.edges.find_or_initialize_by(vis_id: vis_id)
 
-      unless e['label'].nil?
+      unless e['label'].nil? || e['label'].eql?(edge.label)
         edge.label = e['label']
       end
 
-      edge.graph = graphs[graph_id]
-      edge.node_from = nodes[node_from]
-      edge.node_to = nodes[node_to]
+      edge.graph = graphs[graph_vis_id]
+      edge.node_from = nodes[node_from_vis_id]
+      edge.node_to = nodes[node_to_vis_id]
 
       unless seen_edges.has_key? edge
-        seen_edges[edge] = id
+        seen_edges[edge] = vis_id
       end
 
       edge.save!
@@ -164,7 +153,8 @@ class DocumentsController < ApplicationController
 
       document.nodes.each do |node|
 
-        graph_id = node.graph.id
+        node_data = node.to_obj
+        graph_id = node_data[:graph_id]
 
         unless graphs.has_key? graph_id
           graphs[graph_id] = {
@@ -174,28 +164,25 @@ class DocumentsController < ApplicationController
           }
         end
 
-        graphs[graph_id][:nodes] << node.to_obj
+        graphs[graph_id][:nodes] << node_data
 
       end
 
       document.edges.each do |edge|
 
-        graph_id = edge.graph_id
-
-        from = edge.node_from_id
-        to = edge.node_to_id
+        edge_data = edge.to_obj
 
         unless seen.has_key? edge
           seen[edge] = true
-          graphs[graph_id][:edges] << edge.to_obj
+          graphs[edge_data[:graph_id]][:edges] << edge_data
         end
 
       end
 
       document.graphs.each do |g|
-        unless graphs.has_key? g.id
-          graphs[g.id] = {
-              :id => g.id,
+        unless graphs.has_key? g.vis_id
+          graphs[g.vis_id] = {
+              :id => g.vis_id,
               :nodes => [],
               :edges => []
           }

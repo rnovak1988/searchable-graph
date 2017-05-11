@@ -4,4 +4,10 @@ class Graph < ApplicationRecord
   has_many :nodes
   has_many :edges
 
+  def to_obj
+    {
+        :id => vis_id
+    }
+  end
+
 end

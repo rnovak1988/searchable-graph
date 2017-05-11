@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170502223123) do
+ActiveRecord::Schema.define(version: 20170511015716) do
 
   create_table "documents", force: :cascade do |t|
     t.string   "title"
@@ -27,14 +27,18 @@ ActiveRecord::Schema.define(version: 20170502223123) do
     t.string   "label"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
+    t.         "vis_id"
     t.index ["graph_id"], name: "index_edges_on_graph_id"
+    t.index ["vis_id"], name: "index_edges_on_vis_id"
   end
 
   create_table "graphs", force: :cascade do |t|
     t.integer  "document_id"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
+    t.         "vis_id"
     t.index ["document_id"], name: "index_graphs_on_document_id"
+    t.index ["vis_id"], name: "index_graphs_on_vis_id"
   end
 
   create_table "nodes", force: :cascade do |t|
@@ -43,7 +47,9 @@ ActiveRecord::Schema.define(version: 20170502223123) do
     t.text     "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.         "vis_id"
     t.index ["graph_id"], name: "index_nodes_on_graph_id"
+    t.index ["vis_id"], name: "index_nodes_on_vis_id"
   end
 
   create_table "permissions", force: :cascade do |t|

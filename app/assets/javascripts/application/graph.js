@@ -140,7 +140,7 @@
                 } else {
 
                     var new_graph = {
-                        id: 'new-graph ' + 1,
+                        id: vis.util.randomUUID(),
                         nodes: [],
                         edges: []
                     };
@@ -220,7 +220,7 @@
             var length = $scope.graphs.length;
 
             var new_graph = {
-                id: 'new-graph ' + length,
+                id: vis.util.randomUUID(),
                 nodes: [],
                 edges: []
             };

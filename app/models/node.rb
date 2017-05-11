@@ -13,8 +13,9 @@ class Node < ApplicationRecord
 
   def to_obj
     {
-        :id => id,
-        :label => label
+        :id => vis_id,
+        :label => label,
+        :graph_id => graph.vis_id
     }
   end
 
