@@ -15,7 +15,9 @@ class Node < ApplicationRecord
     {
         :id => vis_id,
         :label => label,
-        :graph_id => graph.vis_id
+        :graph_id => graph.vis_id,
+        :shape => vis_shape,
+        :group => vis_tag
     }
   end
 

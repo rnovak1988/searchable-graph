@@ -92,6 +92,14 @@ class DocumentsController < ApplicationController
       node.label = label
       node.graph = graphs[graph_id]
 
+      unless n['shape'].nil? || n['shape'].eql?(node.vis_shape)
+        node.vis_shape = n['shape']
+      end
+
+      unless n['group'].nil? || n['group'].eql?(node.vis_tag)
+        node.vis_tag = n['group']
+      end
+
       nodes[vis_id] = node
 
       node.save!
@@ -112,6 +120,7 @@ class DocumentsController < ApplicationController
       unless e['label'].nil? || e['label'].eql?(edge.label)
         edge.label = e['label']
       end
+
 
       edge.graph = graphs[graph_vis_id]
       edge.node_from = nodes[node_from_vis_id]
@@ -195,7 +204,7 @@ class DocumentsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
-      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label], :edges => [:id, :graph_id, :label, :from, :to])
+      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label, :shape, :group], :edges => [:id, :graph_id, :label, :from, :to])
     end
 
   protected

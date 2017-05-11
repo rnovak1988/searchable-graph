@@ -14,6 +14,15 @@
         $scope.current_node = null;
         $scope.current_edge = null;
 
+        $scope.available_shapes = [
+            'square',
+            'box',
+            'circle',
+            'text',
+            'ellipse',
+            'database'
+        ];
+
         $scope.graph = {
             index: null,
             container: document.getElementById('graph-container'),
@@ -307,7 +316,9 @@
                             transfer_object.nodes.push({
                                 id: node.id,
                                 graph_id: graph.id,
-                                label: node.label
+                                label: node.label,
+                                shape: node.shape,
+                                group: node.group
                             });
                         }
 
