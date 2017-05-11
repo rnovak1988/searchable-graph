@@ -3,6 +3,7 @@ class Graph < ApplicationRecord
 
   has_many :nodes
   has_many :edges
+  has_many :tags
 
   def to_obj
     {

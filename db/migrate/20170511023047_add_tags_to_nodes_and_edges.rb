@@ -1,5 +1,5 @@
 class AddTagsToNodesAndEdges < ActiveRecord::Migration[5.0]
   def change
-    add_column :nodes, :vis_tag, :string, :limit => 128
+    add_column :nodes, :vis_tag_id, :uuid
   end
 end
