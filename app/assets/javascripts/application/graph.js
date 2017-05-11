@@ -14,19 +14,20 @@
         $scope.current_node = null;
         $scope.current_edge = null;
 
-        $scope.available_shapes = [
-            'square',
-            'box',
-            'circle',
-            'text',
-            'ellipse',
-            'database'
-        ];
-
         $scope.graph = {
             index: null,
+            tags: [],
+            show_overlay: false,
             container: document.getElementById('graph-container'),
             network: null,
+            available_shapes: [
+                'square',
+                'box',
+                'circle',
+                'text',
+                'ellipse',
+                'database'
+            ],
             data: {
                 nodes: new vis.DataSet([]),
                 edges: new vis.DataSet([])
@@ -88,6 +89,61 @@
 
         $scope.graphs = [];
 
+        $scope.select_graph = function(index) {
+            var current_index = $scope.graph.index;
+            var current_graph = $scope.graphs[current_index];
+
+            if (current_graph !== undefined && current_graph !== null) {
+                current_graph.nodes = $scope.graph.data.nodes.get();
+                current_graph.edges = $scope.graph.data.edges.get();
+            }
+
+            var next_graph = $scope.graphs[index];
+
+            if (next_graph !== undefined && next_graph !== null) {
+                $scope.graph.data.nodes.clear();
+                $scope.graph.data.edges.clear();
+
+                $scope.graph.index = index;
+                $scope.graph.data.nodes.add(next_graph.nodes);
+                $scope.graph.data.edges.add(next_graph.edges);
+
+                $rootScope.current_graph = next_graph;
+            }
+        };
+
+        $scope.add_graph = function() {
+            var length = $scope.graphs.length;
+
+            var new_graph = {
+                id: vis.util.randomUUID(),
+                nodes: [],
+                edges: []
+            };
+
+            $scope.graphs.push(new_graph);
+
+            $scope.select_graph(length);
+
+        };
+
+        $scope.isActiveTab = function(graph) {
+
+            var selected_graph = $rootScope.current_graph;
+            if (selected_graph !== undefined && selected_graph !== null && selected_graph.hasOwnProperty('id')) {
+                return graph.id === selected_graph.id ? 'active' : '';
+            }
+            return '';
+        };
+
+        $scope.graph_options = {
+            'edit': function() {
+                $scope.graph.show_overlay = true;
+            },
+            'cancel': function() {
+                $scope.graph.show_overlay = false;
+            }
+        };
 
         (function() {
 
@@ -201,53 +257,6 @@
 
 
         })();
-
-        $scope.select_graph = function(index) {
-            var current_index = $scope.graph.index;
-            var current_graph = $scope.graphs[current_index];
-
-            if (current_graph !== undefined && current_graph !== null) {
-                current_graph.nodes = $scope.graph.data.nodes.get();
-                current_graph.edges = $scope.graph.data.edges.get();
-            }
-
-            var next_graph = $scope.graphs[index];
-
-            if (next_graph !== undefined && next_graph !== null) {
-                $scope.graph.data.nodes.clear();
-                $scope.graph.data.edges.clear();
-
-                $scope.graph.index = index;
-                $scope.graph.data.nodes.add(next_graph.nodes);
-                $scope.graph.data.edges.add(next_graph.edges);
-
-                $rootScope.current_graph = next_graph;
-            }
-        };
-
-        $scope.add_graph = function() {
-            var length = $scope.graphs.length;
-
-            var new_graph = {
-                id: vis.util.randomUUID(),
-                nodes: [],
-                edges: []
-            };
-
-            $scope.graphs.push(new_graph);
-
-            $scope.select_graph(length);
-
-        };
-
-        $scope.isActiveTab = function(graph) {
-
-            var selected_graph = $rootScope.current_graph;
-            if (selected_graph !== undefined && selected_graph !== null && selected_graph.hasOwnProperty('id')) {
-                return graph.id === selected_graph.id ? 'active' : '';
-            }
-            return '';
-        };
 
         this.listeners = {
             'graph.save_document': $rootScope.$on('graph.save_document', function() {

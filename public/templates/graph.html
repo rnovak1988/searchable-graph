@@ -8,7 +8,15 @@
     <div id="graph-container" >
     </div>
     <div class="row">
-
+        <div id="graph-options-container">
+            <div class="btn-container">
+                <div class="form-group">
+                    <div class="btn btn-default form-control" data-ng-click="graph_options.edit()"><span class="glyphicon glyphicon-cog"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div id="edit-node-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_NODE" class="col-sm-4 ng-hide panel panel-default">
             <div class="panel-body">
                 <div class="form-group">
@@ -18,7 +26,7 @@
                 <div class="form-group">
                     <label for="edit_node_shape">Shape</label>
                     <select id="edit_node_shape" class="form-control" data-ng-model="current_node.shape">
-                        <option data-ng-repeat="shape in available_shapes" value="{{shape}}">{{shape}}</option>
+                        <option data-ng-repeat="shape in graph.available_shapes" value="{{shape}}">{{shape}}</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -32,18 +40,40 @@
                 </div>
             </div>
         </div>
-
     </div>
-    <div id="edit-edge-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_EDGE" class="col-sm-4 ng-hide panel panel-default">
-        <div class="panel-body">
-            <div class="form-group">
-                <label for="edit_edge_label">Label</label>
-                <input id="edit_edge_label" type="text" class="form-control" data-ng-model="current_edge.label" />
+    <div class="row">
+        <div id="edit-edge-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_EDGE" class="col-sm-4 ng-hide panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="edit_edge_label">Label</label>
+                    <input id="edit_edge_label" type="text" class="form-control" data-ng-model="current_edge.label" />
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-success form-control" data-ng-click="graph.listeners.deselectEdge(null)">
+                        Save
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-                <button type="button" class="btn btn-success form-control" data-ng-click="graph.listeners.deselectEdge(null)">
-                    Save
-                </button>
+        </div>
+    </div>
+</div>
+<div id="graph-options-overlay" data-ng-show="graph.show_overlay" data-ng-click="graph_options.cancel()" class="ng-hide">
+    <div class="container">
+        <div class="panel panel-default" data-ng-click="$event.stopPropagation();">
+            <div class="panel-heading">
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active"><a href="javascript:void(0)">sdlfj</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="pull-right">
+                        <button type="button" data-ng-click="graph_options.cancel()" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+
             </div>
         </div>
     </div>

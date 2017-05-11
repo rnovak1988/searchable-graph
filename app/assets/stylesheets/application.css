@@ -33,7 +33,7 @@ body #main-body #toolbox {
 }
 
 body #main-body #graph-container {
-    position: absolute; left: 0px; right: 0px; bottom: 20px; top: 65px;
+    position: absolute; left: 50px; right: 0px; bottom: 20px; top: 65px;
 }
 
 body #main-body #edit-node-dialog, body #main-body #edit-edge-dialog {
@@ -42,4 +42,24 @@ body #main-body #edit-node-dialog, body #main-body #edit-edge-dialog {
 
 body #main-body #edit-node-dialog > div , body #main-body #edit-edge-dialog > div {
     overflow:hidden;
+}
+
+body #main-body #graph-options-container {
+    position:absolute; left: 0px; top: 65px; bottom: 0px; background-color: #aaa; width: 50px; padding:5px;
+}
+
+body #main-body #graph-options-overlay {
+    position:fixed; left: 0px; right:0px; top: 0px; bottom: 0px; background: #aaa;
+}
+
+body #main-body #graph-options-overlay > div {
+    position:absolute; top: 80px; bottom: 0px; left: 0px; right:0px;
+}
+
+body #main-body #graph-options-overlay .panel {
+    position:absolute; top: 0px; bottom:0px; left:0px; right:0px;
+}
+
+body #main-body #graph-options-overlay .panel > div {
+    overflow: hidden;
 }
