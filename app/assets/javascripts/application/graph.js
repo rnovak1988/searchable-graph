@@ -6,126 +6,128 @@
 
     var graphModule = angular.module('graph.graphs', []);
 
-    var graphController = function($rootScope, $scope, $route, $location, $window, $timeout, graphService) {
+    function GraphFactory() {
 
-        $scope.window = $window;
-        $scope.editor_state = $window.GRAPH_STATE.BASE;
+    }
 
-        $scope.current_node = null;
-        $scope.current_edge = null;
+    GraphFactory.newGraph = function() {
+        return {
+            id: vis.util.randomUUID(),
+            nodes: [],
+            edges: [],
+            tags: []
+        };
+    };
 
-        $scope.graph = {
-            index: null,
-            tags: [],
-            show_overlay: false,
-            container: document.getElementById('graph-container'),
-            network: null,
-            available_shapes: [
-                'square',
-                'box',
-                'circle',
-                'text',
-                'ellipse',
-                'database'
-            ],
-            data: {
-                nodes: new vis.DataSet([]),
-                edges: new vis.DataSet([])
+    function Controller($scope, $rootScope, $route, $window, $timeout, graphService) {
+
+        var THIS = $scope;
+        var GRAPH_CONTAINER_ID = 'graph-container';
+
+        this.window = $window;
+        this.service = graphService;
+
+        this.document = {
+            id:     null,
+            title:  null,
+            graphs: []
+        };
+
+        this.editor = {
+            current: {
+                node: null,
+                edge: null,
+                tag: null
+            },
+            state: $window.GRAPH_STATE.BASE,
+            vis: {
+                index: null,
+                container: document.getElementById(GRAPH_CONTAINER_ID),
+                data: {
+                    nodes: new vis.DataSet([]),
+                    edges: new vis.DataSet([]),
+                    tags: new vis.DataSet([])
+                },
+                options: {
+                    manipulation: {
+                        enabled: true
+                    }
+                },
+                handle: null
+            },
+            constants: {
+                shapes: [
+                    'square',
+                    'box',
+                    'circle',
+                    'text',
+                    'ellipse',
+                    'database'
+                ],
+                default: {
+                    shape: 'box'
+                }
             },
             options: {
                 manipulation: {
                     enabled: true
                 }
             },
-            listeners: {
+            'eventHandlers': {
                 'selectNode': function (event) {
-                    if ($scope.editor_state === $window.GRAPH_STATE.BASE) {
-                        $scope.editor_state = $window.GRAPH_STATE.EDIT_NODE;
-                        $scope.current_node = $scope.graph.data.nodes.get(event.nodes[0]);
+                    if (THIS.editor.state === $window.GRAPH_STATE.BASE) {
+                        console.log(THIS);
+
+                        THIS.editor.state = $window.GRAPH_STATE.EDIT_NODE;
+
+                        THIS.editor.current.node = THIS.editor.vis.data.nodes.get(event.nodes[0]);
 
                         $timeout();
                     }
                 },
                 'deselectNode': function (event) {
-                    if ($scope.editor_state === $window.GRAPH_STATE.EDIT_NODE) {
+                    if (THIS.editor.state === $window.GRAPH_STATE.EDIT_NODE) {
 
-                        $scope.editor_state = $window.GRAPH_STATE.BASE;
+                        THIS.editor.state = $window.GRAPH_STATE.BASE;
 
                         if (event === null) {
-                            $scope.graph.network.unselectAll();
+                            THIS.editor.vis.handle.unselectAll();
                         }
 
-                        $scope.graph.data.nodes.update($scope.current_node);
-                        $scope.current_node = null;
+                        THIS.editor.vis.data.nodes.update(THIS.editor.current.node);
+                        THIS.editor.current.node = null;
 
                         $timeout();
                     }
                 },
                 'selectEdge': function (event) {
-                    if ($scope.editor_state === $window.GRAPH_STATE.BASE) {
-                        $scope.editor_state = $window.GRAPH_STATE.EDIT_EDGE;
-                        $scope.current_edge = $scope.graph.data.edges.get(event.edges[0]);
-
+                    if (THIS.editor.state === $window.GRAPH_STATE.BASE) {
+                        THIS.editor.state = $window.GRAPH_STATE.EDIT_EDGE;
+                        THIS.editor.current.edge = THIS.editor.vis.data.edges.get(event.edges[0]);
                         $timeout();
                     }
                 },
                 'deselectEdge': function (event) {
-                    if ($scope.editor_state === $window.GRAPH_STATE.EDIT_EDGE) {
+                    if (THIS.editor.state === $window.GRAPH_STATE.EDIT_EDGE) {
 
-                        $scope.editor_state = $window.GRAPH_STATE.BASE;
+                        THIS.editor.state = $window.GRAPH_STATE.BASE;
 
                         if (event === null) {
-                            $scope.graph.network.unselectAll();
+                            THIS.editor.vis.handle.unselectAll();
                         }
 
-                        $scope.graph.data.edges.update($scope.current_edge);
-                        $scope.current_edge = null;
+                        THIS.editor.vis.data.edges.update(THIS.editor.current.edge);
+                        THIS.editor.current.edge = null;
 
                         $timeout();
                     }
                 }
             }
-        };
-
-        $scope.graphs = [];
-
-        $scope.select_graph = function(index) {
-            var current_index = $scope.graph.index;
-            var current_graph = $scope.graphs[current_index];
-
-            if (current_graph !== undefined && current_graph !== null) {
-                current_graph.nodes = $scope.graph.data.nodes.get();
-                current_graph.edges = $scope.graph.data.edges.get();
-            }
-
-            var next_graph = $scope.graphs[index];
-
-            if (next_graph !== undefined && next_graph !== null) {
-                $scope.graph.data.nodes.clear();
-                $scope.graph.data.edges.clear();
-
-                $scope.graph.index = index;
-                $scope.graph.data.nodes.add(next_graph.nodes);
-                $scope.graph.data.edges.add(next_graph.edges);
-
-                $rootScope.current_graph = next_graph;
-            }
-        };
-
-        $scope.add_graph = function() {
-            var length = $scope.graphs.length;
-
-            var new_graph = {
-                id: vis.util.randomUUID(),
-                nodes: [],
-                edges: []
-            };
-
-            $scope.graphs.push(new_graph);
-
-            $scope.select_graph(length);
 
         };
+
+        $scope.editor = this.editor;
+        $scope.document = this.document;
 
         $scope.isActiveTab = function(graph) {
 
@@ -138,141 +140,193 @@
 
         $scope.graph_options = {
             'edit': function() {
-                $scope.graph.show_overlay = true;
+                $scope.graph.overlay.visible = true;
             },
             'cancel': function() {
-                $scope.graph.show_overlay = false;
+                $scope.graph.overlay.visible = false;
             }
         };
 
-        (function() {
+        this.__initializeVis($scope);
 
-            // create the initial network graph in the container in the graph.html template
-            $scope.graph.network = new vis.Network($scope.graph.container, $scope.graph.data, $scope.graph.options);
+        this.__initialize($rootScope, $route, $window);
 
-            /**
-             * take the current graph at $rootScope.current_graph add the data, and add it to the
-             * graph
-             */
-            function draw_graph() {
-
-                var current_graph = $rootScope.current_graph;
-
-                if (current_graph !== null && current_graph !== undefined &&
-                    current_graph.hasOwnProperty('nodes') &&
-                    current_graph.hasOwnProperty('edges')) {
-
-                    $scope.graph.data.nodes.add(current_graph.nodes);
-                    $scope.graph.data.edges.add(current_graph.edges);
-
-                }
-
-                var listeners = $scope.graph.listeners;
-                var events = Object.keys(listeners);
-
-                for (var i = 0; i < events.length; i++) {
-                    var event = events[i];
-                    var listener = listeners[event];
-                    $scope.graph.network.on(event, listener);
-                }
-
-                /**
-                 * when destroyed, remove event listeners from the graph
-                 */
-                $scope.$on('$destroy', function() {
-                    for (var i = 0; i < events.length; i++) {
-                        var event = events[i];
-                        $scope.graph.network.off(event, listeners[event]);
-                    }
-                });
-
-            }
-
-            /**
-             * takes the graph in all_graphs, and pulls them into our alias locally, and then
-             * sets the $rootScope.current_graph variable, and calls draw_graph (to add the data to the graph)
-             *
-             * @param all_graphs
-             */
-            function import_graphs(all_graphs) {
-                if (all_graphs !== undefined && all_graphs !== null && all_graphs.length > 0) {
-                    for (var i = 0; i < all_graphs.length; i++) {
-                        $scope.graphs.push(all_graphs[i]);
-                    }
-                    $rootScope.current_graph = $scope.graphs[0];
-                    $scope.graph.index = 0;
-                    draw_graph();
-                } else {
-
-                    var new_graph = {
-                        id: vis.util.randomUUID(),
-                        nodes: [],
-                        edges: []
-                    };
-
-                    $scope.graphs.push(new_graph);
-
-                    $rootScope.current_graph = $scope.graphs[0];
-                    $scope.graph.index = 0;
-                    draw_graph();
-                    $timeout();
-
-                }
-            }
-
-            /**
-             * if the graphController is currently in scope, application state should currently be set to
-             * APPLICATION_STATES.EDIT_GRAPH, which means a document should be set as the current document
-             *
-             * if the user has navigated here by the address bar, the current document needs to be determined by
-             * the route parameters, and loaded via the graph_service, and then the appropriate variables in their
-             * appropriate scopes should be re-defined so that the application is in a consistent state
-             */
-            var current_document = $rootScope.current_document;
-            if (current_document !== undefined && current_document !== null) {
-
-                import_graphs(current_document.graphs);
-
-            } else {
-                var route_params = $route.current.params;
-
-                /**
-                 * if the route parameters have the correct document_id parameter, try loading the document and getting
-                 * the application into a consistent state. If that fails, just escape back to home
-                 */
-                if (route_params !== undefined && route_params !== null && route_params.hasOwnProperty('document_id')) {
-                    var document_id = parseInt(route_params['document_id']);
-                    graphService.loadDocument(document_id, function(document) {
-
-                        $rootScope.current_document = document;
-                        $rootScope.$emit('graph.set_state', $window.APPLICATION_SATES.EDIT_GRAPH);
-                        import_graphs(document.graphs);
-
-                    }, function(errorResponse) {
-                        $rootScope.$emit('graph.esc');
-                    });
-                }
-
-            }
-
-
-        })();
-
-        this.listeners = {
+        this.$listeners = {
             'graph.save_document': $rootScope.$on('graph.save_document', function() {
 
-                var current_index = $scope.graph.index;
+                console.log("sdlkfjsdf");
 
-                $scope.graphs[current_index].nodes = $scope.graph.data.nodes.get();
-                $scope.graphs[current_index].edges = $scope.graph.data.edges.get();
-
-                graphService.saveDocument($rootScope.current_document, $scope.graphs, undefined, function(errorObj) {
-                    console.log(errorObj);
-                });
             })
         };
 
-        $scope.$on('$destroy', this.listeners['graph.save_document']);
+        $scope.$on('$destroy', this.$listeners['graph.save_document']);
+
+    }
+
+    Controller.prototype.__initialize = function(root, route, window) {
+
+        if (root.current_document !== undefined && root.current_document !== null) {
+            this.__storeDocument(root.current_document);
+
+            if (this.document.graphs.length > 0) {
+                this.selectGraph(0);
+            } else {
+                this.addNewGraph();
+            }
+        } else {
+            try {
+                var document_id = parseInt(route.current.params['document_id']);
+
+                if (document_id !== undefined && document_id !== null) {
+
+                    var _this = this;
+                    this.service.loadDocument(document_id, function(doc) {
+
+                        root.current_document = doc;
+                        root.$emit('graph.set_state', window.APPLICATION_SATES.EDIT_GRAPH);
+
+                        _this.__storeDocument(doc);
+
+                        if (_this.document.graphs.length > 0) {
+                            _this.selectGraph(0);
+                        } else {
+                            _this.addNewGraph();
+                        }
+
+                    }, function(err) {
+                        console.log(err);
+                        root.$emit('graph.esc');
+                    });
+
+                }
+
+            } catch (e) {
+                console.log(e);
+                root.$emit('graph.esc');
+            }
+        }
+    };
+
+    Controller.prototype.__initializeVis = function(scope) {
+        var _this = this;
+
+        this.editor.vis.handle = new vis.Network(
+            this.editor.vis.container,
+            this.editor.vis.data,
+            this.editor.vis.options
+        );
+
+        var eventNames = Object.keys(this.editor.eventHandlers);
+        var eventHandlers = this.editor.eventHandlers;
+
+        for (var i = 0; i < eventNames.length; i++) {
+            var eventName = eventNames[i];
+            var handler = eventHandlers[eventName];
+
+            this.editor.vis.handle.on(eventName, handler);
+        }
+
+        scope.$on('$destroy', function() {
+            for (var i = 0; i < eventNames.length; i++) {
+                var eventName = eventNames[i];
+                _this.editor.vis.handle.off(eventName, eventHandlers[eventName]);
+            }
+        });
+
+    };
+
+    Controller.prototype.__storeDocument = function(doc) {
+        if (doc !== undefined && doc !== null) {
+
+            if (doc.hasOwnProperty('id')) {
+                this.document.id = parseInt(doc.id);
+            }
+
+            if (doc.hasOwnProperty('title')) {
+                this.document.title = doc.title;
+            }
+
+            if (doc.hasOwnProperty('graphs') && doc.graphs instanceof Array) {
+                this.document.graphs = doc.graphs;
+            }
+
+        }
+    };
+
+    Controller.prototype.__storeGraph = function() {
+        var index = this.editor.vis.index;
+
+        if (index !== undefined && index !== null) {
+
+            var graph = this.document.graphs[index];
+
+            if (graph !== undefined && graph !== null) {
+
+                graph.nodes = this.editor.vis.data.nodes.get();
+                graph.edges = this.editor.vis.data.edges.get();
+                graph.tags = this.editor.vis.data.tags.get();
+
+            }
+        }
+    };
+
+    Controller.prototype.__clearDataSets = function() {
+
+        this.editor.vis.index = null;
+
+        this.editor.vis.data.nodes.clear();
+        this.editor.vis.data.edges.clear();
+        this.editor.vis.data.tags.clear();
+
+    };
+
+    Controller.prototype.__loadGraph = function(index) {
+
+        var graph = this.document.graphs[index];
+
+        if (graph !== undefined && graph !== null) {
+
+            this.editor.vis.index = index;
+
+            if (graph.hasOwnProperty('nodes')) {
+                this.editor.vis.data.nodes.add(graph.nodes);
+            }
+
+            if (graph.hasOwnProperty('edges')) {
+                this.editor.vis.data.edges.add(graph.edges);
+            }
+
+            if (graph.hasOwnProperty('tags')) {
+                this.editor.vis.data.tags.add(graph.tags);
+            }
+
+        }
+
+    };
+
+    Controller.prototype.selectGraph = function(index) {
+
+        // store data from the current graph
+        this.__storeGraph();
+
+        // clear data sets
+        this.__clearDataSets();
+
+        // import new data
+
+        if (index !== undefined && index !== null) {
+
+            this.__loadGraph(index);
+
+        }
+
+    };
+
+    Controller.prototype.addNewGraph = function() {
+
+        this.document.graphs.push(GraphFactory.newGraph());
+
+        this.selectGraph(this.document.graphs.length);
 
     };
 
@@ -308,13 +362,15 @@
                         title: unsaved_document.title,
                         graphs: [],
                         nodes: [],
-                        edges: []
+                        edges: [],
+                        tags: []
                     };
 
                     for (var i = 0; i < unsaved_graphs.length; i++) {
                         var graph = unsaved_graphs[i];
                         var nodes = graph.nodes;
                         var edges = graph.edges;
+                        var tags = graph.tags;
 
                         transfer_object.graphs.push({
                             id: graph.id
@@ -341,6 +397,16 @@
                                 graph_id: graph.id
                             });
                         }
+
+                        for (var tag_index = 0; tag_index < tags.length; tag_index++) {
+                            var tag = tags[tag_index];
+                            transfer_object.tags.push({
+                                id: tag.id,
+                                name: tag.name,
+                                graph_id: graph.id
+                            });
+                        }
+
 
                     }
 
@@ -377,6 +443,6 @@
     };
 
     graphModule.service('graphService', ['$http', graphService]);
-    graphModule.controller('graphController', ['$rootScope', '$scope', '$route', '$location', '$window', '$timeout', 'graphService', graphController]);
+    graphModule.controller('graphController', ['$scope', '$rootScope', '$route', '$window', '$timeout', 'graphService', Controller]);
 
 })();

@@ -4,7 +4,7 @@
  */
 
 //= require application/common
-//= require application/graph
+//= require application/editor
 //= require application/document
 //= require_self
 
@@ -14,7 +14,7 @@
      * The container is the root of the application, and handles event propogation
      * @type {angular.Module}
      */
-    var container = angular.module('graph.container', ['ngRoute', 'graph.documents', 'graph.graphs']);
+    var container = angular.module('graph.container', ['ngRoute', 'graph.documents', 'graph.editor']);
 
     var rootController = function($rootScope, $scope, $window, $location, graphService) {
 
@@ -36,7 +36,7 @@
 
             var new_doc = {'title': 'Document Created at ' + (new Date()).toGMTString()};
 
-            graphService.newDocument(new_doc, function(resulting_doc) {
+            graphService.new(new_doc, function(resulting_doc) {
 
                 $scope.application_state = $window.APPLICATION_SATES.EDIT_GRAPH;
                 $rootScope.current_document = resulting_doc;

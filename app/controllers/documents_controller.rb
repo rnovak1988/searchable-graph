@@ -59,13 +59,14 @@ class DocumentsController < ApplicationController
 
     seen_edges = {}
 
-    document = Document.includes(:graphs, :nodes, :edges).joins(:user).where({user: current_user}).find(params[:id])
+    document = Document.deep_query(current_user, params)
 
     document.title = params[:document]['title']
 
     document.save!
 
     graphs = {}
+    tags = {}
     nodes = {}
     edges = []
 
@@ -78,6 +79,21 @@ class DocumentsController < ApplicationController
 
       graph.save!
       graphs[vis_id] = graph
+
+    end
+
+    params[:document][:tags].each do |t|
+
+      vis_id = t[:id]
+      tag = document.tags.find_or_initialize_by(vis_id: vis_id)
+
+      unless t[:name].nil? || t[:name].eql?(tag.name)
+        tag.name = t[:name]
+        tag.graph = graphs[t[:graph_id]]
+        tag.save!
+      end
+
+      tags[:vis_id] = tag
 
     end
 
@@ -96,8 +112,8 @@ class DocumentsController < ApplicationController
         node.vis_shape = n['shape']
       end
 
-      unless n['group'].nil? || n['group'].eql?(node.vis_tag)
-        node.vis_tag = n['group']
+      unless n['group'].nil? || n['group'].eql?(node.vis_tag_id)
+        node.vis_tag_id = n['group']
       end
 
       nodes[vis_id] = node
@@ -133,8 +149,23 @@ class DocumentsController < ApplicationController
       edge.save!
     end
 
+    params[:document][:removed_edges].each do |vis_id|
+      target = document.edges.find_by(:vis_id => vis_id)
+
+      target.destroy! unless target.nil?
+    end
+
+    params[:document][:removed_nodes].each do |vis_id|
+
+      target = document.nodes.find_by(:vis_id => vis_id)
+      target.destroy! unless target.nil?
+
+    end
+
     head :no_content
   end
+
+
 
   # DELETE /documents/1
   # DELETE /documents/1.json
@@ -158,7 +189,18 @@ class DocumentsController < ApplicationController
       graphs = {}
       seen = {}
 
-      document = Document.includes(:graphs, :nodes, :edges).joins(:user).where({user: current_user}).find(params[:id])
+      document = Document.deep_query(current_user, params)
+
+      document.graphs.each do |g|
+        unless graphs.has_key? g.vis_id
+          graphs[g.vis_id] = {
+              :id => g.vis_id,
+              :nodes => [],
+              :edges => [],
+              :tags => []
+          }
+        end
+      end
 
       document.nodes.each do |node|
 
@@ -169,7 +211,8 @@ class DocumentsController < ApplicationController
           graphs[graph_id] = {
               :id => graph_id,
               :nodes => [],
-              :edges => []
+              :edges => [],
+              :tags => []
           }
         end
 
@@ -188,14 +231,9 @@ class DocumentsController < ApplicationController
 
       end
 
-      document.graphs.each do |g|
-        unless graphs.has_key? g.vis_id
-          graphs[g.vis_id] = {
-              :id => g.vis_id,
-              :nodes => [],
-              :edges => []
-          }
-        end
+      document.tags.each do |t|
+        tag_data = t.to_obj
+        graphs[tag_data[:graph_id]][:tags] << tag_data
       end
 
       result = {:id => document.id, :title => document.title, :graphs => graphs.values}
@@ -204,7 +242,11 @@ class DocumentsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
-      params.require(:document).permit(:id, :title, :graphs => [:id], :nodes => [:id, :graph_id, :label, :shape, :group], :edges => [:id, :graph_id, :label, :from, :to])
+      params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
+                                       :graphs => [:id],
+                                       :nodes => [:id, :graph_id, :label, :shape, :group],
+                                       :edges => [:id, :graph_id, :label, :from, :to],
+                                        :tags => [:id, :name, :graph_id])
     end
 
   protected

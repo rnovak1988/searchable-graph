@@ -33,7 +33,8 @@
         'ADD_NODE': 'Adding a node to the currently selected graph',
         'EDIT_NODE': 'Editing the information for a selected node',
         'ADD_EDGE': 'Add an edge between two nodes',
-        'EDIT_EDGE': 'Edit the information for an edge (including removing that edge)'
+        'EDIT_EDGE': 'Edit the information for an edge (including removing that edge)',
+        'EDIT_OPTIONS': 'Edit the options for the graph'
     };
 
 

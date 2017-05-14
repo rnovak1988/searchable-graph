@@ -37,7 +37,7 @@ body #main-body #graph-container {
 }
 
 body #main-body #edit-node-dialog, body #main-body #edit-edge-dialog {
-    position:absolute; right: 10px; top:65px; bottom:0px; background-color: #ddd;
+    position:absolute; right: 10px; top:65px; bottom:0px; background-color: #ddd; overflow-y:scroll;
 }
 
 body #main-body #edit-node-dialog > div , body #main-body #edit-edge-dialog > div {
@@ -49,17 +49,21 @@ body #main-body #graph-options-container {
 }
 
 body #main-body #graph-options-overlay {
-    position:fixed; left: 0px; right:0px; top: 0px; bottom: 0px; background: #aaa;
+    position:fixed; left: 0px; right:0px; top: 0px; bottom: 0px; background: rgba(150, 150, 150, 0.95); z-index: 5000;
 }
 
 body #main-body #graph-options-overlay > div {
     position:absolute; top: 80px; bottom: 0px; left: 0px; right:0px;
 }
 
-body #main-body #graph-options-overlay .panel {
-    position:absolute; top: 0px; bottom:0px; left:0px; right:0px;
+body #main-body #graph-options-overlay .panel.panel-default {
+    position:absolute; top: 0px; bottom:0px; left:0px; right:0px; overflow: hidden;
 }
 
-body #main-body #graph-options-overlay .panel > div {
-    overflow: hidden;
+body #main-body #graph-options-overlay .panel.panel-default .panel-heading {
+    overflow:hidden;
+}
+
+body #main-body #graph-options-overlay .panel.panel-default .panel-body {
+    position:absolute; left: 0px; right:0px; top: 65px; bottom:0px; overflow-y: scroll;
 }

@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(version: 20170511032853) do
     t.string   "label"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
-    t.         "vis_id"
+    t.string    "vis_id", length: 36
     t.index ["graph_id"], name: "index_edges_on_graph_id"
     t.index ["vis_id"], name: "index_edges_on_vis_id"
   end
@@ -36,7 +36,7 @@ ActiveRecord::Schema.define(version: 20170511032853) do
     t.integer  "document_id"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
-    t.         "vis_id"
+    t.string         "vis_id", length: 36
     t.index ["document_id"], name: "index_graphs_on_document_id"
     t.index ["vis_id"], name: "index_graphs_on_vis_id"
   end
@@ -45,11 +45,11 @@ ActiveRecord::Schema.define(version: 20170511032853) do
     t.integer  "graph_id"
     t.string   "label"
     t.text     "notes"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
-    t.         "vis_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string         "vis_id", length: 36
     t.string   "vis_shape"
-    t.string   "vis_tag",    limit: 128
+    t.string         "vis_tag_id", length: 36
     t.index ["graph_id"], name: "index_nodes_on_graph_id"
     t.index ["vis_id"], name: "index_nodes_on_vis_id"
   end
@@ -70,7 +70,7 @@ ActiveRecord::Schema.define(version: 20170511032853) do
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.         "vis_id"
+    t.string         "vis_id", length: 36
     t.index ["graph_id"], name: "index_tags_on_graph_id"
     t.index ["vis_id"], name: "index_tags_on_vis_id"
   end

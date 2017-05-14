@@ -1,7 +1,7 @@
 <div class="panel-heading">
     <ul class="nav nav-tabs">
-        <li class="{{isActiveTab(graph)}}" role="presentation" data-ng-repeat="graph in graphs"><a href="javascript:void(0)" data-ng-click="select_graph($index)">Graph {{$index + 1}}</a></li>
-        <li role="presentation"><a href="javascript:void(0)" data-ng-click="add_graph()"><span class="glyphicon glyphicon-plus-sign"></span></a></li>
+        <li class="{{getTabClass($index)}}" role="presentation" data-ng-repeat="graph in document.current.graphs"><a href="javascript:void(0)" data-ng-click="selectGraph($index)">Graph {{$index + 1}}</a></li>
+        <li role="presentation"><a href="javascript:void(0)" data-ng-click="addNewGraph()"><span class="glyphicon glyphicon-plus-sign"></span></a></li>
     </ul>
 </div>
 <div class="panel-body">
@@ -17,64 +17,10 @@
         </div>
     </div>
     <div class="row">
-        <div id="edit-node-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_NODE" class="col-sm-4 ng-hide panel panel-default">
-            <div class="panel-body">
-                <div class="form-group">
-                    <label for="edit_node_label">Label</label>
-                    <input id="edit_node_label" type="text" class="form-control" data-ng-model="current_node.label" />
-                </div>
-                <div class="form-group">
-                    <label for="edit_node_shape">Shape</label>
-                    <select id="edit_node_shape" class="form-control" data-ng-model="current_node.shape">
-                        <option data-ng-repeat="shape in graph.available_shapes" value="{{shape}}">{{shape}}</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit_node_tag">Tag</label>
-                    <input type="text" id="edit_node_tag" class="form-control" data-ng-model="current_node.group" />
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn btn-success form-control" data-ng-click="graph.listeners.deselectNode(null)">
-                        Save
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div id="edit-node-dialog" data-ng-include="'/templates/graph-node.html'" data-ng-show="state === GRAPH_STATE.EDIT_NODE" class="col-sm-4 ng-hide panel panel-default node-dialog"></div>
     </div>
     <div class="row">
-        <div id="edit-edge-dialog" data-ng-show="editor_state === window.GRAPH_STATE.EDIT_EDGE" class="col-sm-4 ng-hide panel panel-default">
-            <div class="panel-body">
-                <div class="form-group">
-                    <label for="edit_edge_label">Label</label>
-                    <input id="edit_edge_label" type="text" class="form-control" data-ng-model="current_edge.label" />
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn btn-success form-control" data-ng-click="graph.listeners.deselectEdge(null)">
-                        Save
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div id="edit-edge-dialog" data-ng-include="'/templates/graph-edge.html'" data-ng-show="state === GRAPH_STATE.EDIT_EDGE" class="col-sm-4 ng-hide panel panel-default"></div>
     </div>
 </div>
-<div id="graph-options-overlay" data-ng-show="graph.show_overlay" data-ng-click="graph_options.cancel()" class="ng-hide">
-    <div class="container">
-        <div class="panel panel-default" data-ng-click="$event.stopPropagation();">
-            <div class="panel-heading">
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <ul class="nav nav-tabs">
-                        <li role="presentation" class="active"><a href="javascript:void(0)">sdlfj</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-6">
-                    <div class="pull-right">
-                        <button type="button" data-ng-click="graph_options.cancel()" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-body">
-
-            </div>
-        </div>
-    </div>
-</div>
+<div id="graph-options-overlay" data-ng-include="'/templates/graph-options.html'" data-ng-show="grsaph.overlay.visible" data-ng-click="graph_options.cancel()" class="ng-hide"></div>
