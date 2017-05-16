@@ -26,12 +26,17 @@
                 enabled: true,
                 deleteNode: function(data, callback) {
 
+                    var removed = {};
+
                     data.nodes.forEach(function(nodeId) {
                          _this.current.removed_nodes.push(nodeId);
+                        removed[nodeId] = true;
                     }, _this);
 
-                    data.edges.forEach(function(edgeId) {
-                        _this.current.removed_edges.push(edgeId);
+                    var edges = _this.data.edges.get({
+                        filter: function(e) {
+                            return (removed[e.from] === true) || (removed[e.to] === true);
+                        }
                     });
 
                     _this.listeners.forEach(function(handler) {
@@ -41,8 +46,16 @@
                     });
 
                     callback(data);
+
+                    edges.forEach(function(edge) {
+                        _this.data.edges.remove(edge);
+                        _this.current.removed_edges.push(edge.id);
+                    });
+
                 },
                 deleteEdge: function(data, callback) {
+
+                    console.log('in delete edge');
 
                     data.edges.forEach(function(edgeId) {
                         _this.current.removed_edges.push(edgeId);
@@ -148,12 +161,15 @@
 
         if (data !== undefined && data !== null &&
             data.hasOwnProperty('id') &&
-            data.hasOwnProperty('title') &&
-            data.hasOwnProperty('graphs') &&
-            data['graphs'] instanceof Array) {
+            data.hasOwnProperty('title')) {
 
             this.current.id = parseInt(data.id);
             this.current.title = data.title;
+
+            if (!data.hasOwnProperty('graphs')) {
+                data.graphs = [];
+            }
+
             this.current.graphs = data.graphs;
 
             if (this.current.graphs.length < 1) {
@@ -445,6 +461,9 @@
 
             _this.angular.scope.vis.listen(_this, handler.event, metaHandler);
 
+            _this.angular.scope[handler.event] = function() {
+                metaHandler(null);
+            };
 
         });
 
