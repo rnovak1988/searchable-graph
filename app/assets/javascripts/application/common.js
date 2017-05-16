@@ -37,6 +37,10 @@
         'EDIT_OPTIONS': 'Edit the options for the graph'
     };
 
+    window.OPTIONS_STATE = {
+        'EDIT_TAGS': 'edit the properties for a tag'
+    };
+
 
 
 })();

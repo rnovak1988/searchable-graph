@@ -208,7 +208,22 @@
         }
     };
 
+
+
     function Graph() {
+
+        this.state = null;
+
+        this.tag = new Tag();
+
+        this.tags = [];
+
+        for (var i = 0; i < 100; i++) {
+            this.tags.push({
+                id: vis.util.randomUUID(),
+                name: vis.util.randomUUID()
+            });
+        }
 
         this.index = null;
         this.current = null;
@@ -255,6 +270,7 @@
     Graph.prototype.edit = function(scope, window) {
 
         this.previous_state = scope.state;
+        this.state = window.OPTIONS_STATE.EDIT_TAGS;
 
         scope.state = window.GRAPH_STATE.EDIT_OPTIONS;
 
@@ -270,6 +286,20 @@
         } else {
             scope.state = window.GRAPH_STATE.BASE;
         }
+        this.state = null;
+    };
+
+    function Tag() {
+        this.current = null;
+    }
+
+    Tag.prototype.select = function(tag) {
+        this.current = tag;
+    };
+
+    Tag.prototype.class = function(tag) {
+        if (tag === this.current) return 'active';
+        return '';
     };
 
     function Node() {
@@ -514,6 +544,7 @@
         this.handlers.options.forEach(function(handler) {
             _this.angular.scope[handler.event] = function() {
                 handler.ref.apply(handler.context, handler.args);
+                _this.angular.timeout();
             };
         });
     };
