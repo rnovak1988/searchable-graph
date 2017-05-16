@@ -64,8 +64,16 @@
                     callback(data);
                 }
             },
+            layout: {
+                randomSeed: 849696
+            },
             physics: {
-                enabled: true
+                enabled: true,
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -3500,
+                    springLength: 115
+                }
             }
         };
 
@@ -205,6 +213,8 @@
         this.index = null;
         this.current = null;
 
+        this.previous_state = null;
+
     }
 
     Graph.newGraph = function() {
@@ -239,6 +249,26 @@
             );
 
             return document.current.graphs.length - 1;
+        }
+    };
+
+    Graph.prototype.edit = function(scope, window) {
+
+        this.previous_state = scope.state;
+
+        scope.state = window.GRAPH_STATE.EDIT_OPTIONS;
+
+    };
+
+    Graph.prototype.update = function(scope, window) {
+
+    };
+
+    Graph.prototype.cancelEdit = function(scope, window) {
+        if (this.previous_state !== null) {
+            scope.state = this.previous_state;
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
         }
     };
 
@@ -389,6 +419,20 @@
                     },
                     handle: null
                 }
+            ],
+            'options': [
+                {
+                    event: 'editOptions',
+                    ref: this.angular.scope.graph.edit,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
+                },
+                {
+                    event: 'cancelOptions',
+                    ref: this.angular.scope.graph.cancelEdit,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
+                }
             ]
         };
 
@@ -467,6 +511,11 @@
 
         });
 
+        this.handlers.options.forEach(function(handler) {
+            _this.angular.scope[handler.event] = function() {
+                handler.ref.apply(handler.context, handler.args);
+            };
+        });
     };
 
     Controller.prototype.import = function(doc) {
@@ -517,7 +566,6 @@
         }
 
     };
-
 
     function Service($http) {
         this.http = $http;

@@ -8,16 +8,16 @@
             </div>
             <div class="col-lg-6 col-md-6 col-sm-6">
                 <div class="pull-right">
-                    <button type="button" data-ng-click="graph_options.cancel()" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" data-ng-click="cancelOptions()" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
             </div>
         </div>
-        <div class="panel-body">
+        <div class="graph-options panel-body">
             <div class="">
                 <div class="col-lg-6 col-md-6">
                     <table class="table table-hover">
                         <tbody>
-                        <tr data-ng-repeat="tag in graph.tags">
+                        <tr data-ng-repeat="tag in graph.current.tags">
                             <td>{{tag.name}}</td>
                         </tr>
                         </tbody>

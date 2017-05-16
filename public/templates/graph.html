@@ -11,7 +11,7 @@
         <div id="graph-options-container">
             <div class="btn-container">
                 <div class="form-group">
-                    <div class="btn btn-default form-control" data-ng-click="graph_options.edit()"><span class="glyphicon glyphicon-cog"></span></div>
+                    <div class="btn btn-default form-control" data-ng-click="editOptions()"><span class="glyphicon glyphicon-cog"></span></div>
                 </div>
             </div>
         </div>
@@ -23,4 +23,4 @@
         <div id="edit-edge-dialog" data-ng-include="'/templates/graph-edge.html'" data-ng-show="state === GRAPH_STATE.EDIT_EDGE" class="col-sm-4 ng-hide panel panel-default"></div>
     </div>
 </div>
-<div id="graph-options-overlay" data-ng-include="'/templates/graph-options.html'" data-ng-show="grsaph.overlay.visible" data-ng-click="graph_options.cancel()" class="ng-hide"></div>
+<div id="graph-options-overlay" data-ng-include="'/templates/graph-options.html'" data-ng-show="state === GRAPH_STATE.EDIT_OPTIONS" data-ng-click="cancelOptions()" class="ng-hide"></div>
