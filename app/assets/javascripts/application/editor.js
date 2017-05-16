@@ -19,6 +19,9 @@
         };
 
         this.options = {
+            interaction: {
+                selectConnectedEdges: false
+            },
             manipulation: {
                 enabled: true,
                 deleteNode: function(data, callback) {
@@ -242,25 +245,27 @@
 
     }
 
-    Node.prototype.select = function(event, vis) {
-        try {
-            this.current = vis.data.nodes.get(event.nodes[0]);
-        } catch(e) {
-            console.log(e);
-        }
+    Node.prototype.select = function(event, scope, window) {
+
+        if (this.current !== null)
+            this.update(event, scope, window);
+
+        this.current = scope.vis.data.nodes.get(event.nodes[0]);
+
+        scope.state = window.GRAPH_STATE.EDIT_NODE;
+
     };
 
-    Node.prototype.update = function(event, vis) {
-        try {
-            vis.data.nodes.update(this.current);
-            vis.clear();
+    Node.prototype.update = function(event, scope, window) {
+
+        if (this.current !== null) {
+
+            scope.vis.data.nodes.update(this.current);
             this.current = null;
-        } catch (e) {
-            console.log(e);
-        }
-    };
 
-    Node.prototype.remove = function(node, graph, vis) {
+            if (scope.state === window.GRAPH_STATE.EDIT_NODE)
+                scope.state = window.GRAPH_STATE.BASE;
+        }
 
     };
 
@@ -269,6 +274,32 @@
         this.current = null;
 
     }
+
+    Edge.prototype.select = function(event, scope, window) {
+
+        if (this.current !== null)
+            this.update(event, scope, window);
+
+        this.current = scope.vis.data.edges.get(event.edges[0]);
+
+        scope.state = window.GRAPH_STATE.EDIT_EDGE;
+
+    };
+
+    Edge.prototype.update = function(event, scope, window) {
+
+        console.log('in edge update');
+
+        if (this.current !== null) {
+            scope.vis.data.edges.update(this.current);
+            this.current = null;
+
+            if (scope.state === window.GRAPH_STATE.EDIT_EDGE)
+                scope.state = window.GRAPH_STATE.BASE;
+
+        }
+
+    };
 
     function Controller ($scope, $rootScope, $route, $window, $timeout, $service) {
 
@@ -305,25 +336,33 @@
                     event: 'selectNode',
                     ref: this.angular.scope.node.select,
                     args: [
-                        this.angular.scope.vis
+                        this.angular.scope, this.angular.window
                     ],
-                    states: {
-                        precondition: this.angular.scope.GRAPH_STATE.BASE,
-                        postcondition: this.angular.scope.GRAPH_STATE.EDIT_NODE
-                    },
-                    _this: this.angular.scope.node
+                    context: this.angular.scope.node
                 },
                 {
                     event: 'deselectNode',
                     ref: this.angular.scope.node.update,
                     args: [
-                        this.angular.scope.vis
+                        this.angular.scope, this.angular.window
                     ],
-                    states: {
-                        precondition: this.angular.scope.GRAPH_STATE.EDIT_NODE,
-                        postcondition: this.angular.scope.GRAPH_STATE.BASE
-                    },
-                    _this: this.angular.scope.node
+                    context: this.angular.scope.node
+                },
+                {
+                    event: 'selectEdge',
+                    ref: this.angular.scope.edge.select,
+                    args: [
+                        this.angular.scope, this.angular.window
+                    ],
+                    context: this.angular.scope.edge
+                },
+                {
+                    event: 'deselectEdge',
+                    ref: this.angular.scope.edge.update,
+                    args: [
+                        this.angular.scope, this.angular.window
+                    ],
+                    context: this.angular.scope.edge
                 }
             ],
             'angular': [
@@ -392,31 +431,22 @@
 
     Controller.prototype.__initializeVis = function() {
 
-        var outer_this = this;
+        var _this = this;
 
         this.handlers.vis.forEach(function(handler) {
 
-            var _this = this;
-
             var metaHandler = function(event) {
-                if (this.angular.scope.state === handler.states.precondition) {
 
-                    this.angular.scope.state = handler.states.postcondition;
+                handler.ref.apply(handler.context, [event].concat(handler.args));
 
-                    if (event === null) outer_this.angular.scope.vis.clear();
+                _this.angular.timeout();
 
-                    handler.ref.apply(handler._this, [event].concat(handler.args));
-
-                    this.angular.timeout();
-                }
             };
 
-            this.angular.scope.vis.listen(this, handler.event, metaHandler);
-            this.angular.scope[handler.event] = function() {
-                metaHandler.apply(outer_this, [null]);
-            };
+            _this.angular.scope.vis.listen(_this, handler.event, metaHandler);
 
-        }, this);
+
+        });
 
     };
 
