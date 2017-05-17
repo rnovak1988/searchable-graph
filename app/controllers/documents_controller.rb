@@ -2,7 +2,7 @@ class DocumentsController < ApplicationController
   before_action :set_csrf_cookie
 
   before_action :authenticate_user!
-  before_action :set_document, only: [:edit, :destroy]
+  before_action :set_document, only: [:show, :update, :edit, :destroy]
 
   # GET /documents
   # GET /documents.json
@@ -18,7 +18,7 @@ class DocumentsController < ApplicationController
     else
       respond_to do |format|
         format.html
-        format.json { render :json => query_document }
+        format.json { render :json => @document.to_obj }
       end
     end
   end
@@ -57,138 +57,107 @@ class DocumentsController < ApplicationController
     # the transfer object that is created as part of graph.js, so it needs to get transformed into
     # native representation so it can be saved
 
-    seen_edges = {}
+    graphs  = {}
+    tags    = {}
+    nodes   = {}
+    edges   = {}
 
-    document = Document.deep_query(current_user, params)
+    # Because apparently ruby doesn't memoize anything
+    @document.graphs.each do |graph|
+      graphs[graph.id] = graph
 
-    document.title = params[:document]['title']
+      graph.nodes.each do |node|
+        nodes[node.id] = node
+      end
 
-    document.save!
+      graph.edges.each do |edge|
+        edges[edge.id] = edge
+      end
 
-    graphs = {}
-    tags = {}
-    nodes = {}
-    edges = []
+      graph.tags.each do |tag|
+        tags[tag.id] = tag
+      end
+    end
 
-    params[:document][:graphs].each do |g|
+    params[:document][:graphs].each do |graph_obj|
 
-      vis_id = g['id']
-      graph = nil
-
-      graph = document.graphs.find_or_initialize_by(vis_id: vis_id)
-
-      graph.save!
-      graphs[vis_id] = graph
+      graphs[graph_obj[:id]] = @document.graphs.create!(id: graph_obj[:id]) unless graphs.has_key?(graph_obj[:id])
 
     end
 
-    params[:document][:tags].each do |t|
+    params[:document][:tags].each do |tag_obj|
 
-      vis_id = t[:id]
+      graph = graphs[tag_obj[:graph_id]]
 
-      tag = tags[vis_id]
+      unless graph.nil?
 
-      if tag.nil?
-        tag = document.tags.find_or_initialize_by(vis_id: vis_id)
+        tag = tags[tag_obj[:id]]
+
+        if tag.nil?
+          tag = graph.tags.create!(id: tag_obj[:id])
+          tags[tag_obj[:id]] = tag
+        end
+
+        tag.name = tag_obj[:name] unless tag_obj[:name].nil? or tag.name.eql?(tag_obj[:name])
+        tag.save!
+
       end
-
-      unless t[:name].nil? || t[:name].empty? || t[:name].eql?(tag.name)
-        tag.name = t[:name]
-        tag.graph = graphs[t[:graph_id]]
-      end
-
-      tag.save!
-
-      tags[tag[:id]] = tag
 
     end
 
 
-    params[:document][:nodes].each do |n|
+    params[:document][:nodes].each do |node_obj|
 
-      vis_id = n['id']
-      label = n['label']
-      graph_id = n['graph_id']
+      graph = graphs[node_obj[:graph_id]]
 
-      node = document.nodes.find_or_initialize_by(vis_id: vis_id)
+      unless graph.nil?
 
-      node.label = label
-      node.graph = graphs[graph_id]
+        node = nodes[node_obj[:id]]
 
-      unless n['shape'].nil? || n['shape'].eql?(node.vis_shape)
-        node.vis_shape = n['shape']
+        if node.nil?
+          node = graph.nodes.create!(id: node_obj[:id])
+          nodes[node_obj[:id]] = node
+        end
+
+        node.label = node_obj[:label] unless node_obj[:label].nil? || node.label.eql?(node_obj[:label])
+        node.vis_shape = node_obj[:shape] unless node_obj[:shape].nil? || node.vis_shape.eql?(node_obj[:shape])
+
+        node.save!
+
       end
 
-
-      if n[:tags].length > 0
-
-        to_remove = node.node_tags.joins(:tag).where.not(:tags => {:vis_id => n[:tags]})
-
-        if to_remove.length > 0
-          to_remove.destroy_all
-        end
-
-        n[:tags].each do |nt|
-
-          tag = tags[nt]
-          tag = document.tags.find_by(vis_id: nt)
-
-          unless tag.nil? || node.tags.where(vis_id: nt).exists?
-            node.tags << tag
-          end
-        end
-        
-
-      else
-        to_remove = node.node_tags
-        if to_remove.length > 0
-          to_remove.destroy_all
-        end
-      end
-
-      nodes[vis_id] = node
-
-      node.save!
     end
 
-    params[:document][:edges].each do |e|
+    params[:document][:edges].each do |edge_obj|
 
-      edge = nil
+      graph = graphs[edge_obj[:graph_id]]
+      node_from = nodes[edge_obj[:from]]
+      node_to = nodes[edge_obj[:to]]
 
-      vis_id = e['id']
-      node_from_vis_id = e['from']
-      node_to_vis_id = e['to']
+      unless graph.nil? || node_from.nil? || node_to.nil?
 
-      graph_vis_id = e['graph_id']
+        edge = edges[edge_obj[:id]]
 
-      edge = document.edges.find_or_initialize_by(vis_id: vis_id)
+        if edge.nil?
 
-      unless e['label'].nil? || e['label'].eql?(edge.label)
-        edge.label = e['label']
+          edge = graph.edges.create!(id: edge_obj[:id], node_from: node_from, node_to: node_to)
+          edges[edge_obj[:id]] = edge
+
+        end
+
+        edge.label = edge_obj[:label] unless edge_obj[:label].nil? || edge.label.eql?(edge_obj[:label])
+        edge.save!
+
       end
 
 
-      edge.graph = graphs[graph_vis_id]
-      edge.node_from = nodes[node_from_vis_id]
-      edge.node_to = nodes[node_to_vis_id]
-
-      unless seen_edges.has_key? edge
-        seen_edges[edge] = vis_id
-      end
-
-      edge.save!
     end
 
     params[:document][:removed_edges].each do |vis_id|
-      target = document.edges.find_by(:vis_id => vis_id)
 
-      target.destroy! unless target.nil?
     end
 
     params[:document][:removed_nodes].each do |vis_id|
-
-      target = document.nodes.find_by(:vis_id => vis_id)
-      target.destroy! unless target.nil?
 
     end
 
@@ -210,7 +179,7 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.joins(:user).where({user: current_user}).find(params[:id])
+      @document = Document.includes(:graphs => [:nodes => [:node_tags], :edges => [], :tags => []]).joins(:user).where(user: current_user).find(params[:id])
     end
 
       # query document from the database and create a structure that is conducive to serialization

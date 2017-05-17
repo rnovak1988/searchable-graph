@@ -3,6 +3,9 @@ class ApplicationRecord < ActiveRecord::Base
 
   before_validation :generate_uuid
 
+  def to_obj
+    raise(NotImplementedError)
+  end
 
   def generate_uuid
     unless !self.has_attribute?('id') || self.type_for_attribute('id').type.eql?(:integer)

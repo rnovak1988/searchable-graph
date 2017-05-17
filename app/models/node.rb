@@ -22,11 +22,11 @@ class Node < ApplicationRecord
 
   def to_obj
     {
-        :id => id,
-        :label => label,
+        :id       => id,
+        :label    => label,
         :graph_id => graph_id,
-        :shape => vis_shape,
-        :tags => node_tags.map {|nt| nt.tag_id },
+        :shape    => vis_shape,
+        :tags     => node_tags.map(&:tag_id)
     }
   end
 
