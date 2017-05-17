@@ -32,10 +32,10 @@ class Edge < ApplicationRecord
 
   def to_obj
     {
-        :id         => vis_id,
-        :from       => node_from.vis_id,
-        :to         => node_to.vis_id,
-        :graph_id   => graph.vis_id,
+        :id         => id,
+        :from       => node_from_id,
+        :to         => node_to_id,
+        :graph_id   => graph_id,
         :label      => "#{label}"
     }
   end

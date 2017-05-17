@@ -1,10 +1,17 @@
 class CreateNodeTags < ActiveRecord::Migration[5.0]
   def change
     create_table :node_tags do |t|
-      t.belongs_to :node, foreign_key: true
-      t.belongs_to :tag, foreign_key: true
-
+      t.boolean :is_primary
       t.timestamps
     end
+
+    add_column :node_tags, :node_id, :uuid
+    add_column :node_tags, :tag_id, :uuid
+
+    add_foreign_key :node_tags, :nodes
+    add_foreign_key :node_tags, :tags
+
+    add_index :node_tags, [:node_id, :tag_id], unique: true
+
   end
 end

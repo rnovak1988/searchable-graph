@@ -17,17 +17,16 @@ class Node < ApplicationRecord
   end
 
   def primary_tag
-    tags.where(node_tags: {is_primary: true}).first&.vis_id
+    node_tags.where(:node_tags => {is_primary: true}).first&.tag_id
   end
 
   def to_obj
     {
-        :id => vis_id,
+        :id => id,
         :label => label,
-        :graph_id => graph.vis_id,
+        :graph_id => graph_id,
         :shape => vis_shape,
-        :tags => tags.map {|t| t.vis_id},
-        :primary_tag => primary_tag
+        :tags => node_tags.map {|nt| nt.tag_id },
     }
   end
 

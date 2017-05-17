@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170517060525) do
+ActiveRecord::Schema.define(version: 20170517044125) do
 
   create_table "documents", force: :cascade do |t|
     t.string   "title"
@@ -20,68 +20,49 @@ ActiveRecord::Schema.define(version: 20170517060525) do
     t.index ["user_id"], name: "index_documents_on_user_id"
   end
 
-  create_table "edges", force: :cascade do |t|
-    t.integer  "graph_id"
-    t.integer  "node_from_id"
-    t.integer  "node_to_id"
+  create_table "edges", id: nil, force: :cascade do |t|
     t.string   "label"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
-    t.         "vis_id"
-    t.index ["graph_id"], name: "index_edges_on_graph_id"
-    t.index ["vis_id"], name: "index_edges_on_vis_id"
+    t.         "graph_id"
+    t.         "node_from_id"
+    t.         "node_to_id"
+    t.index ["id"], name: "sqlite_autoindex_edges_1", unique: true
   end
 
-  create_table "graphs", force: :cascade do |t|
+  create_table "graphs", id: nil, force: :cascade do |t|
     t.integer  "document_id"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
-    t.         "vis_id"
     t.index ["document_id"], name: "index_graphs_on_document_id"
-    t.index ["vis_id"], name: "index_graphs_on_vis_id"
+    t.index ["id"], name: "sqlite_autoindex_graphs_1", unique: true
   end
 
   create_table "node_tags", force: :cascade do |t|
-    t.integer  "node_id"
-    t.integer  "tag_id"
+    t.boolean  "is_primary"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean  "is_primary"
-    t.index ["node_id"], name: "index_node_tags_on_node_id"
-    t.index ["tag_id"], name: "index_node_tags_on_tag_id"
+    t.         "node_id"
+    t.         "tag_id"
+    t.index ["node_id", "tag_id"], name: "index_node_tags_on_node_id_and_tag_id", unique: true
   end
 
-  create_table "nodes", force: :cascade do |t|
-    t.integer  "graph_id"
+  create_table "nodes", id: nil, force: :cascade do |t|
     t.string   "label"
     t.text     "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.         "vis_id"
+    t.         "graph_id"
     t.string   "vis_shape"
-    t.index ["graph_id"], name: "index_nodes_on_graph_id"
-    t.index ["vis_id"], name: "index_nodes_on_vis_id"
+    t.index ["id"], name: "sqlite_autoindex_nodes_1", unique: true
   end
 
-  create_table "permissions", force: :cascade do |t|
-    t.integer  "user_id"
-    t.integer  "document_id"
-    t.boolean  "can_read"
-    t.boolean  "can_write"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
-    t.index ["document_id"], name: "index_permissions_on_document_id"
-    t.index ["user_id"], name: "index_permissions_on_user_id"
-  end
-
-  create_table "tags", force: :cascade do |t|
-    t.integer  "graph_id"
+  create_table "tags", id: nil, force: :cascade do |t|
     t.string   "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.         "vis_id"
-    t.index ["graph_id"], name: "index_tags_on_graph_id"
-    t.index ["vis_id"], name: "index_tags_on_vis_id"
+    t.         "graph_id"
+    t.index ["id"], name: "sqlite_autoindex_tags_1", unique: true
   end
 
   create_table "users", force: :cascade do |t|
