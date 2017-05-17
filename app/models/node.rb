@@ -16,13 +16,18 @@ class Node < ApplicationRecord
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
 
+  def primary_tag
+    tags.where(node_tags: {is_primary: true}).first&.vis_id
+  end
+
   def to_obj
     {
         :id => vis_id,
         :label => label,
         :graph_id => graph.vis_id,
         :shape => vis_shape,
-        :tags => tags.map {|t| t.vis_id}
+        :tags => tags.map {|t| t.vis_id},
+        :primary_tag => primary_tag
     }
   end
 

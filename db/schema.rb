@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170517044125) do
+ActiveRecord::Schema.define(version: 20170517060525) do
 
   create_table "documents", force: :cascade do |t|
     t.string   "title"
@@ -46,6 +46,7 @@ ActiveRecord::Schema.define(version: 20170517044125) do
     t.integer  "tag_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean  "is_primary"
     t.index ["node_id"], name: "index_node_tags_on_node_id"
     t.index ["tag_id"], name: "index_node_tags_on_tag_id"
   end

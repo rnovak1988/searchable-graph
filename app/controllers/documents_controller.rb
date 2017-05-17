@@ -136,8 +136,9 @@ class DocumentsController < ApplicationController
           unless tag.nil? || node.tags.where(vis_id: nt).exists?
             node.tags << tag
           end
-
         end
+        
+
       else
         to_remove = node.node_tags
         if to_remove.length > 0
@@ -273,7 +274,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :primary_tag],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id])
     end
