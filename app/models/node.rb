@@ -7,6 +7,11 @@ class Node < ApplicationRecord
   has_many :children, :through => :edges_from, :class_name => Node, :source => :node_to
   has_many :parents, :through => :edges_to, :class_name => Node, :source => :node_from
 
+  has_many :node_tags
+  has_many :tags, through: :node_tags
+
+  accepts_nested_attributes_for :node_tags, :allow_destroy => true
+
   def edges
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
@@ -17,7 +22,7 @@ class Node < ApplicationRecord
         :label => label,
         :graph_id => graph.vis_id,
         :shape => vis_shape,
-        :group => vis_tag_id
+        :tags => tags.map {|t| t.vis_id}
     }
   end
 

@@ -103,6 +103,7 @@ class DocumentsController < ApplicationController
 
     end
 
+
     params[:document][:nodes].each do |n|
 
       vis_id = n['id']
@@ -118,9 +119,31 @@ class DocumentsController < ApplicationController
         node.vis_shape = n['shape']
       end
 
-      unless n['group'].nil? || n['group'].eql?(node.vis_tag_id)
-        node.vis_tag_id = n['group']
+
+      if n[:tags].length > 0
+
+        to_remove = node.node_tags.joins(:tag).where.not(:tags => {:vis_id => n[:tags]})
+
+        if to_remove.length > 0
+          to_remove.destroy_all
+        end
+
+        n[:tags].each do |nt|
+
+          tag = tags[nt]
+          tag = document.tags.find_by(vis_id: nt)
+
+          unless tag.nil? || node.tags.where(vis_id: nt).exists?
+            node.tags << tag
+          end
+
+        end
+      else
+
       end
+
+
+
 
       nodes[vis_id] = node
 
@@ -250,7 +273,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :group],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id])
     end

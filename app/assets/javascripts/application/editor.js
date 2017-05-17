@@ -663,7 +663,7 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
-                                group: node.group
+                                tags: node.tags
                             });
                         }
 
