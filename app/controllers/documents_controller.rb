@@ -139,11 +139,11 @@ class DocumentsController < ApplicationController
 
         end
       else
-
+        to_remove = node.node_tags
+        if to_remove.length > 0
+          to_remove.destroy_all
+        end
       end
-
-
-
 
       nodes[vis_id] = node
 
