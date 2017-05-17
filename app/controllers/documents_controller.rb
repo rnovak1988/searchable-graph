@@ -85,15 +85,21 @@ class DocumentsController < ApplicationController
     params[:document][:tags].each do |t|
 
       vis_id = t[:id]
-      tag = document.tags.find_or_initialize_by(vis_id: vis_id)
 
-      unless t[:name].nil? || t[:name].eql?(tag.name)
-        tag.name = t[:name]
-        tag.graph = graphs[t[:graph_id]]
-        tag.save!
+      tag = tags[vis_id]
+
+      if tag.nil?
+        tag = document.tags.find_or_initialize_by(vis_id: vis_id)
       end
 
-      tags[:vis_id] = tag
+      unless t[:name].nil? || t[:name].empty? || t[:name].eql?(tag.name)
+        tag.name = t[:name]
+        tag.graph = graphs[t[:graph_id]]
+      end
+
+      tag.save!
+
+      tags[tag[:id]] = tag
 
     end
 

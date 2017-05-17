@@ -147,7 +147,6 @@
 
             this.current.nodes = this.data.nodes.get();
             this.current.edges = this.data.edges.get();
-            this.current.tags = this.data.tags.get();
 
         }
 
@@ -209,21 +208,15 @@
     };
 
 
-
     function Graph() {
+
+        this.STATES = {
+            EDIT_TAGS: 'Edit the properties of tags'
+        };
 
         this.state = null;
 
         this.tag = new Tag();
-
-        this.tags = [];
-
-        for (var i = 0; i < 100; i++) {
-            this.tags.push({
-                id: vis.util.randomUUID(),
-                name: vis.util.randomUUID()
-            });
-        }
 
         this.index = null;
         this.current = null;
@@ -270,14 +263,15 @@
     Graph.prototype.edit = function(scope, window) {
 
         this.previous_state = scope.state;
-        this.state = window.OPTIONS_STATE.EDIT_TAGS;
+        this.state = this.STATES.EDIT_TAGS;
+        this.tag.current = null;
 
         scope.state = window.GRAPH_STATE.EDIT_OPTIONS;
 
     };
 
     Graph.prototype.update = function(scope, window) {
-
+        this.cancelEdit(scope, window);
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -287,11 +281,28 @@
             scope.state = window.GRAPH_STATE.BASE;
         }
         this.state = null;
+        this.tag.current = null;
+    };
+
+    Graph.prototype.addTag = function() {
+        if (this.current !== null) {
+            var newTag = Tag.newTag(this.current.id);
+            this.current.tags.push(newTag);
+            this.tag.select(newTag);
+        }
     };
 
     function Tag() {
         this.current = null;
     }
+
+    Tag.newTag = function(graph_id) {
+        return {
+            id: vis.util.randomUUID(),
+            graph_id: graph_id,
+            name: 'New Tag'
+        };
+    };
 
     Tag.prototype.select = function(tag) {
         this.current = tag;
@@ -460,6 +471,12 @@
                 {
                     event: 'cancelOptions',
                     ref: this.angular.scope.graph.cancelEdit,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
+                },
+                {
+                    event: 'updateOptions',
+                    ref: this.angular.scope.graph.update,
                     args: [this.angular.scope, this.angular.window],
                     context: this.angular.scope.graph
                 }
