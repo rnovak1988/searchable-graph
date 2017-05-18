@@ -55,10 +55,14 @@
                 },
                 deleteEdge: function(data, callback) {
 
-                    console.log('in delete edge');
-
                     data.edges.forEach(function(edgeId) {
                         _this.current.removed_edges.push(edgeId);
+                    });
+
+                    _this.listeners.forEach(function(handler) {
+                        if (handler.name === 'deselectEdge') {
+                            handler.fn.apply(handler.context, [null]);
+                        }
                     });
 
                     callback(data);
