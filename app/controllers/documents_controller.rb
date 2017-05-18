@@ -182,18 +182,24 @@ class DocumentsController < ApplicationController
 
         edge.label = edge_obj[:label] unless edge_obj[:label].nil? || edge.label.eql?(edge_obj[:label])
         edge.save!
-
-
-
+        
       end
     end
 
     params[:document][:removed_edges].each do |vis_id|
-
+      edge = edges[vis_id]
+      unless edge.nil?
+        edge.destroy
+        edges.delete(vis_id)
+      end
     end
 
     params[:document][:removed_nodes].each do |vis_id|
-
+      node = nodes[vis_id]
+      unless node.nil?
+        node.destroy
+        nodes.delete(vis_id)
+      end
     end
 
     head :no_content
