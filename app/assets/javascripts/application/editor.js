@@ -315,6 +315,8 @@
 
     function Node() {
 
+        var _this = this;
+
         this.current = null;
 
         this.shapes = [
@@ -328,6 +330,10 @@
 
         this.defaults = {
             shape: this.shapes[0]
+        };
+
+        this.hasTag = function(value) {
+            return _this.__hasTag(value);
         };
 
     }
@@ -354,6 +360,11 @@
                 scope.state = window.GRAPH_STATE.BASE;
         }
 
+    };
+
+    Node.prototype.__hasTag = function(value) {
+        if (this.current !== null && this.current.tags !== undefined && this.current.tags !== null && this.current.tags instanceof Array) return this.current.tags.includes(value.id);
+        return false;
     };
 
     function Edge() {
@@ -663,7 +674,8 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
-                                tags: node.tags
+                                tags: node.tags,
+                                group: node.group
                             });
                         }
 

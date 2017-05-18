@@ -122,6 +122,41 @@ class DocumentsController < ApplicationController
         node.label = node_obj[:label] unless node_obj[:label].nil? || node.label.eql?(node_obj[:label])
         node.vis_shape = node_obj[:shape] unless node_obj[:shape].nil? || node.vis_shape.eql?(node_obj[:shape])
 
+        if node_obj.has_key?(:tags) && node_obj[:tags].length > 0
+
+          node.node_tags.each do |node_tag|
+            if node_obj[:tags].include?(node_tag.tag_id)
+              node_obj[:tags].delete(node_tag.tag_id)
+            else
+              node_tag.destroy
+            end
+          end
+
+          node_obj[:tags].each do |tag_id|
+            tag = tags[tag_id]
+            unless tag.nil?
+              node.tags << tag
+            end
+          end
+
+
+          if node.node_tags.empty?
+            node.primary_tag = nil
+          elsif node_obj.has_key?(:group)
+
+            node.primary_tag = nil
+
+            unless node_obj[:group].nil? || !tags.has_key?(node_obj[:group])
+              node.primary_tag = tags[node_obj[:group]]
+            end
+
+          end
+
+        else
+          node.node_tags.destroy_all
+          node.primary_tag = nil
+        end
+
         node.save!
 
       end
@@ -140,7 +175,7 @@ class DocumentsController < ApplicationController
 
         if edge.nil?
 
-          edge = graph.edges.create!(id: edge_obj[:id], node_from: node_from, node_to: node_to)
+          edge = graph.edges.new(id: edge_obj[:id], node_from: node_from, node_to: node_to)
           edges[edge_obj[:id]] = edge
 
         end
@@ -148,9 +183,9 @@ class DocumentsController < ApplicationController
         edge.label = edge_obj[:label] unless edge_obj[:label].nil? || edge.label.eql?(edge_obj[:label])
         edge.save!
 
+
+
       end
-
-
     end
 
     params[:document][:removed_edges].each do |vis_id|
@@ -179,7 +214,7 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.includes(:graphs => [:nodes => [:node_tags], :edges => [], :tags => []]).joins(:user).where(user: current_user).find(params[:id])
+      @document = Document.includes(:graphs => [:nodes => [:node_tags => [:tag]], :edges => [:node_from, :node_to], :tags => []]).joins(:user).where(user: current_user).find(params[:id])
     end
 
       # query document from the database and create a structure that is conducive to serialization
@@ -243,7 +278,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :primary_tag],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id])
     end

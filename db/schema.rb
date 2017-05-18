@@ -39,7 +39,6 @@ ActiveRecord::Schema.define(version: 20170517044125) do
   end
 
   create_table "node_tags", force: :cascade do |t|
-    t.boolean  "is_primary"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.         "node_id"
@@ -50,10 +49,11 @@ ActiveRecord::Schema.define(version: 20170517044125) do
   create_table "nodes", id: nil, force: :cascade do |t|
     t.string   "label"
     t.text     "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
     t.         "graph_id"
     t.string   "vis_shape"
+    t.         "primary_tag_id"
     t.index ["id"], name: "sqlite_autoindex_nodes_1", unique: true
   end
 

@@ -10,15 +10,14 @@ class Node < ApplicationRecord
   has_many :node_tags
   has_many :tags, through: :node_tags
 
+  belongs_to :primary_tag, :class_name => Tag, :optional => true
+
   accepts_nested_attributes_for :node_tags, :allow_destroy => true
 
   def edges
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
 
-  def primary_tag
-    node_tags.where(:node_tags => {is_primary: true}).first&.tag_id
-  end
 
   def to_obj
     {
@@ -26,7 +25,8 @@ class Node < ApplicationRecord
         :label    => label,
         :graph_id => graph_id,
         :shape    => vis_shape,
-        :tags     => node_tags.map(&:tag_id)
+        :tags     => node_tags.map(&:tag_id),
+        :group    => primary_tag_id
     }
   end
 
