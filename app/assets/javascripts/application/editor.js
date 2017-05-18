@@ -10,6 +10,8 @@
 
         this.current = null;
 
+        this.defaultGroups = null;
+
         this.container = document.getElementById(VIS_CONTAINER_ID);
 
         this.data = {
@@ -85,6 +87,10 @@
 
         this.handle = new vis.Network(this.container, this.data, this.options);
 
+        this.resetGroups = function() {
+            _this.__resetGroups();
+        };
+
     }
 
     Vis.prototype.load = function(document, graph) {
@@ -109,7 +115,21 @@
             this.data.edges.add(this.current.edges);
             this.data.tags.add(this.current.tags);
 
+            this.groups = this.handle.groups.groups;
 
+            this.current.tags.forEach(function(tag) {
+                var group = _this.groups[tag.id];
+
+                if (tag.color !== null) {
+                    group.color.background = tag.color;
+                } else {
+                    tag.color = group.color.background;
+                }
+
+                if (tag.shape !== null) {
+                    group.shape = tag.shape;
+                }
+            });
         }
     };
 
@@ -154,6 +174,46 @@
 
         }
 
+    };
+
+    Vis.prototype.syncGroups = function() {
+        var _this = this;
+        var groups = {};
+
+        this.current.tags.forEach(function(tag) {
+            var group = _this.groups[tag.id];
+
+            if (tag.color !== null) {
+                group.color.background = tag.color;
+            } else {
+                tag.color = group.color.background;
+            }
+
+            if (tag.shape !== null) {
+                group.shape = tag.shape;
+            }
+
+            groups[tag.id] = group;
+        });
+
+        console.log(groups);
+        this.handle.setOptions({groups: groups});
+    };
+
+    Vis.prototype.__resetGroups = function() {
+        var _this = this;
+        var groups = {};
+        this.current.tags.forEach(function(tag) {
+            var group = _this.groups[tag.id];
+
+            if (tag.__color !== undefined && tag.__color !== null) {
+                group.color.background = tag.__color
+            }
+
+            groups[tag.id] = group;
+        });
+
+        this.handle.setOptions({groups: groups});
     };
 
     function Document() {
@@ -275,7 +335,14 @@
     };
 
     Graph.prototype.update = function(scope, window) {
-        this.cancelEdit(scope, window);
+        scope.vis.syncGroups();
+        if (this.previous_state !== null) {
+            scope.state = this.previous_state;
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
+        }
+        this.state = null;
+        this.tag.current = null;
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -286,6 +353,13 @@
         }
         this.state = null;
         this.tag.current = null;
+
+        this.current.tags.forEach(function(tag) {
+            if (tag.__color !== undefined && tag.__color !== null)
+                tag.color = tag.__color;
+        });
+
+        scope.vis.resetGroups();
     };
 
     Graph.prototype.addTag = function() {
@@ -310,6 +384,7 @@
 
     Tag.prototype.select = function(tag) {
         this.current = tag;
+        this.current.__color = this.current.color;
     };
 
     Tag.prototype.class = function(tag) {

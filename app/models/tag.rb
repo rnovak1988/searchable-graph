@@ -8,7 +8,10 @@ class Tag < ApplicationRecord
     {
         :id         => id,
         :graph_id   => graph_id,
-        :name       => name
+        :name       => name,
+        :title      => title,
+        :shape      => shape,
+        :color      => color
     }
   end
 end

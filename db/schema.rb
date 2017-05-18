@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170517044125) do
+ActiveRecord::Schema.define(version: 20170518052641) do
 
   create_table "documents", force: :cascade do |t|
     t.string   "title"
@@ -62,6 +62,9 @@ ActiveRecord::Schema.define(version: 20170517044125) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.         "graph_id"
+    t.string   "color"
+    t.string   "shape"
+    t.string   "title"
     t.index ["id"], name: "sqlite_autoindex_tags_1", unique: true
   end
 
