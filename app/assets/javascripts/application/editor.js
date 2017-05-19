@@ -415,7 +415,8 @@
 
         if (this.current !== null) {
 
-            if (this.current.hasOwnProperty('shape') && (this.current.shape === undefined || this.current.shape === null))
+            if (this.current.hasOwnProperty('shape') &&
+                (this.current.shape === undefined || this.current.shape === null || this.current.shape === ''))
                 delete this.current['shape'];
 
             scope.vis.data.nodes.update(this.current);
