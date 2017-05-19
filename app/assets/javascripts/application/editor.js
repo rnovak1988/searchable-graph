@@ -91,6 +91,10 @@
             _this.__resetGroups();
         };
 
+        this.syncGroups = function() {
+            _this.__syncGroups();
+        };
+
     }
 
     Vis.prototype.load = function(document, graph) {
@@ -116,9 +120,6 @@
             this.data.tags.add(this.current.tags);
 
             this.syncGroups();
-
-            this.defaultGroups = {};
-            $.extend(true, this.defaultGroups, this.handle.groups.groups );
 
 
         }
@@ -167,7 +168,7 @@
 
     };
 
-    Vis.prototype.syncGroups = function() {
+    Vis.prototype.__syncGroups = function() {
 
         var _this = this;
 
@@ -189,6 +190,9 @@
         } catch(e) {
             console.log(e);
         }
+
+        this.defaultGroups = {};
+        $.extend(true, this.defaultGroups, this.handle.groups.groups );
 
     };
 
@@ -297,6 +301,11 @@
             this.index = index;
             this.current = document.current.graphs[index];
 
+            if (this.current !== null) {
+                this.current.backup_tags = [];
+                $.extend(true, this.current.backup_tags, this.current.tags);
+            }
+
         }
     };
 
@@ -329,6 +338,9 @@
         this.state = null;
         this.tag.current = null;
 
+        this.current.backup_tags = [];
+        $.extend(true, this.current.backup_tags, this.current.tags);
+
         scope.vis.syncGroups();
     };
 
@@ -340,6 +352,12 @@
         }
         this.state = null;
         this.tag.current = null;
+
+        if (this.current.hasOwnProperty('backup_tags')) {
+            this.current.tags = [];
+            $.extend(true, this.current.tags, this.current.backup_tags);
+            scope.vis.resetGroups();
+        }
 
     };
 
