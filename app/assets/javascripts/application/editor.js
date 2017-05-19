@@ -115,21 +115,12 @@
             this.data.edges.add(this.current.edges);
             this.data.tags.add(this.current.tags);
 
-            this.groups = this.handle.groups.groups;
+            this.syncGroups();
 
-            this.current.tags.forEach(function(tag) {
-                var group = _this.groups[tag.id];
+            this.defaultGroups = {};
+            $.extend(true, this.defaultGroups, this.handle.groups.groups );
 
-                if (tag.color !== null) {
-                    group.color.background = tag.color;
-                } else {
-                    tag.color = group.color.background;
-                }
 
-                if (tag.shape !== null) {
-                    group.shape = tag.shape;
-                }
-            });
         }
     };
 
@@ -177,43 +168,38 @@
     };
 
     Vis.prototype.syncGroups = function() {
+
         var _this = this;
-        var groups = {};
 
-        this.current.tags.forEach(function(tag) {
-            var group = _this.groups[tag.id];
+        var options = {groups: {}};
 
-            if (tag.color !== null) {
-                group.color.background = tag.color;
-            } else {
-                tag.color = group.color.background;
-            }
+        if (this.current !== null && this.current.tags !== undefined && this.current.tags !== null) {
+            this.current.tags.forEach(function(tag) {
+                ['color', 'shape', 'title'].forEach(function(property) {
+                   if (tag.hasOwnProperty(property) && tag[property] !== undefined && tag[property] !== null) {
+                       if (!options.groups.hasOwnProperty(tag.id)) options.groups[tag.id] = {};
 
-            if (tag.shape !== null) {
-                group.shape = tag.shape;
-            }
+                       options.groups[tag.id][property] = tag[property];
+                   }
+                });
+            });
+        }
+        try{
+            this.handle.setOptions(options);
+        } catch(e) {
+            console.log(e);
+        }
 
-            groups[tag.id] = group;
-        });
-
-        console.log(groups);
-        this.handle.setOptions({groups: groups});
     };
 
     Vis.prototype.__resetGroups = function() {
-        var _this = this;
-        var groups = {};
-        this.current.tags.forEach(function(tag) {
-            var group = _this.groups[tag.id];
-
-            if (tag.__color !== undefined && tag.__color !== null) {
-                group.color.background = tag.__color
+        if (this.defaultGroups !== null) {
+            try {
+                this.handle.setOptions({groups: this.defaultGroups});
+            } catch (e) {
+                console.log(e);
             }
-
-            groups[tag.id] = group;
-        });
-
-        this.handle.setOptions({groups: groups});
+        }
     };
 
     function Document() {
@@ -335,7 +321,6 @@
     };
 
     Graph.prototype.update = function(scope, window) {
-        scope.vis.syncGroups();
         if (this.previous_state !== null) {
             scope.state = this.previous_state;
         } else {
@@ -343,6 +328,8 @@
         }
         this.state = null;
         this.tag.current = null;
+
+        scope.vis.syncGroups();
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -354,12 +341,6 @@
         this.state = null;
         this.tag.current = null;
 
-        this.current.tags.forEach(function(tag) {
-            if (tag.__color !== undefined && tag.__color !== null)
-                tag.color = tag.__color;
-        });
-
-        scope.vis.resetGroups();
     };
 
     Graph.prototype.addTag = function() {
@@ -378,13 +359,15 @@
         return {
             id: vis.util.randomUUID(),
             graph_id: graph_id,
-            name: 'New Tag'
+            name: null,
+            title: null,
+            shape: null
         };
     };
 
     Tag.prototype.select = function(tag) {
         this.current = tag;
-        this.current.__color = this.current.color;
+
     };
 
     Tag.prototype.class = function(tag) {
@@ -431,6 +414,9 @@
     Node.prototype.update = function(event, scope, window) {
 
         if (this.current !== null) {
+
+            if (this.current.hasOwnProperty('shape') && (this.current.shape === undefined || this.current.shape === null))
+                delete this.current['shape'];
 
             scope.vis.data.nodes.update(this.current);
             this.current = null;
@@ -774,7 +760,10 @@
                             transfer_object.tags.push({
                                 id: tag.id,
                                 name: tag.name,
-                                graph_id: graph.id
+                                graph_id: graph.id,
+                                color: tag.color,
+                                shape: tag.shape,
+                                title: tag.title
                             });
                         }
 

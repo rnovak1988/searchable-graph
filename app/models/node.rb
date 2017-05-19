@@ -20,7 +20,7 @@ class Node < ApplicationRecord
 
 
   def to_obj
-    {
+    result = {
         :id       => id,
         :label    => label,
         :graph_id => graph_id,
@@ -28,6 +28,12 @@ class Node < ApplicationRecord
         :tags     => node_tags.map(&:tag_id),
         :group    => primary_tag_id
     }
+    if vis_shape.nil? || vis_shape.empty?
+      unless primary_tag.nil? || primary_tag.shape.nil?
+        result.delete(:shape)
+      end
+    end
+    result
   end
 
 end

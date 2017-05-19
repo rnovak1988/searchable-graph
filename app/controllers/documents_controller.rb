@@ -99,6 +99,19 @@ class DocumentsController < ApplicationController
         end
 
         tag.name = tag_obj[:name] unless tag_obj[:name].nil? or tag.name.eql?(tag_obj[:name])
+
+        if tag_obj.has_key?(:color) && !tag.color.eql?(tag_obj[:color]) && !(tag_obj[:color].match(%r{\A#(\h{6}|\h{3}|\h)\z}).nil?)
+          tag.color = tag_obj[:color]
+        end
+
+        if tag_obj.has_key?(:shape) && !tag.shape.eql?(tag_obj[:shape])
+          tag.shape = tag_obj[:shape]
+        end
+
+        if tag_obj.has_key?(:title) && !tag.title.eql?(tag_obj[:title])
+          tag.title = tag_obj[:title]
+        end
+
         tag.save!
 
       end
@@ -182,7 +195,7 @@ class DocumentsController < ApplicationController
 
         edge.label = edge_obj[:label] unless edge_obj[:label].nil? || edge.label.eql?(edge_obj[:label])
         edge.save!
-        
+
       end
     end
 
@@ -286,7 +299,7 @@ class DocumentsController < ApplicationController
                                        :graphs => [:id],
                                        :nodes => [:id, :graph_id, :label, :shape, :tags, :group],
                                        :edges => [:id, :graph_id, :label, :from, :to],
-                                        :tags => [:id, :name, :graph_id])
+                                        :tags => [:id, :name, :graph_id, :color, :shape, :title])
     end
 
   protected

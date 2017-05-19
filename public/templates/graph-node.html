@@ -6,6 +6,7 @@
     <div class="form-group">
         <label for="edit_node_shape">Shape</label>
         <select id="edit_node_shape" class="form-control" data-ng-model="node.current.shape">
+            <option value></option>
             <option data-ng-repeat="shape in node.shapes" value="{{shape}}">{{shape}}</option>
         </select>
     </div>
