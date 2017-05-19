@@ -7,7 +7,10 @@ class Graph < ApplicationRecord
 
   def to_obj
     {
-        :id => vis_id
+        :id => id,
+        :nodes => [],
+        :edges => [],
+        :tags  => []
     }
   end
 

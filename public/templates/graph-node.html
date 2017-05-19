@@ -6,6 +6,7 @@
     <div class="form-group">
         <label for="edit_node_shape">Shape</label>
         <select id="edit_node_shape" class="form-control" data-ng-model="node.current.shape">
+            <option value></option>
             <option data-ng-repeat="shape in node.shapes" value="{{shape}}">{{shape}}</option>
         </select>
     </div>
@@ -13,6 +14,13 @@
         <label for="edit_node_tag">Tags</label>
         <select multiple id="edit_node_tag" class="form-control" data-ng-model="node.current.tags">
             <option data-ng-repeat="tag in graph.current.tags" data-ng-value="tag.id">{{tag.name}}</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="edit_node_group">Primary Tag</label>
+        <select id="edit_node_group" class="form-control" data-ng-model="node.current.group">
+            <option value></option>
+            <option data-ng-repeat="tag in graph.current.tags | filter: node.hasTag" data-ng-value="tag.id">{{tag.name}}</option>
         </select>
     </div>
     <div class="form-group">

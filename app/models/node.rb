@@ -1,14 +1,16 @@
 class Node < ApplicationRecord
   belongs_to :graph
 
-  has_many :edges_from, :class_name => Edge, foreign_key: :node_from_id
-  has_many :edges_to, :class_name => Edge, foreign_key: :node_to_id
+  has_many :edges_from, :class_name => Edge, foreign_key: :node_from_id, dependent: :destroy
+  has_many :edges_to, :class_name => Edge, foreign_key: :node_to_id, dependent: :destroy
 
   has_many :children, :through => :edges_from, :class_name => Node, :source => :node_to
   has_many :parents, :through => :edges_to, :class_name => Node, :source => :node_from
 
-  has_many :node_tags
+  has_many :node_tags, dependent: :destroy
   has_many :tags, through: :node_tags
+
+  belongs_to :primary_tag, :class_name => Tag, :optional => true
 
   accepts_nested_attributes_for :node_tags, :allow_destroy => true
 
@@ -16,19 +18,22 @@ class Node < ApplicationRecord
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
 
-  def primary_tag
-    tags.where(node_tags: {is_primary: true}).first&.vis_id
-  end
 
   def to_obj
-    {
-        :id => vis_id,
-        :label => label,
-        :graph_id => graph.vis_id,
-        :shape => vis_shape,
-        :tags => tags.map {|t| t.vis_id},
-        :primary_tag => primary_tag
+    result = {
+        :id       => id,
+        :label    => label,
+        :graph_id => graph_id,
+        :shape    => vis_shape,
+        :tags     => node_tags.map(&:tag_id),
+        :group    => primary_tag_id
     }
+    if vis_shape.nil? || vis_shape.empty?
+      unless primary_tag.nil? || primary_tag.shape.nil?
+        result.delete(:shape)
+      end
+    end
+    result
   end
 
 end

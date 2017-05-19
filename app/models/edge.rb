@@ -5,37 +5,12 @@ class Edge < ApplicationRecord
   belongs_to :node_to, class_name: Node
 
 
-  ##
-  # implementation of eql? This is implented so we can use Edge as a key into a hash
-
-  def eql?(other)
-    if other.instance_of?(Edge)
-      if self.hash == other.hash
-        true
-      end
-    else
-      false
-    end
-  end
-
-  ##
-  # implementation of hash function, which uniquely identifies an edge by comparing it against a graph,
-  # and the Edges that it links to
-
-  def hash
-    result = 7
-    result = 31 * result + graph.hash
-    result = 31 * result + node_from.hash
-    result = 31 * result + node_to.hash
-    return result
-  end
-
   def to_obj
     {
-        :id         => vis_id,
-        :from       => node_from.vis_id,
-        :to         => node_to.vis_id,
-        :graph_id   => graph.vis_id,
+        :id         => id,
+        :from       => node_from_id,
+        :to         => node_to_id,
+        :graph_id   => graph_id,
         :label      => "#{label}"
     }
   end

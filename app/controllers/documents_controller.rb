@@ -2,7 +2,7 @@ class DocumentsController < ApplicationController
   before_action :set_csrf_cookie
 
   before_action :authenticate_user!
-  before_action :set_document, only: [:edit, :destroy]
+  before_action :set_document, only: [:show, :update, :edit, :destroy]
 
   # GET /documents
   # GET /documents.json
@@ -18,7 +18,7 @@ class DocumentsController < ApplicationController
     else
       respond_to do |format|
         format.html
-        format.json { render :json => query_document }
+        format.json { render :json => @document.to_obj }
       end
     end
   end
@@ -57,139 +57,162 @@ class DocumentsController < ApplicationController
     # the transfer object that is created as part of graph.js, so it needs to get transformed into
     # native representation so it can be saved
 
-    seen_edges = {}
+    graphs  = {}
+    tags    = {}
+    nodes   = {}
+    edges   = {}
 
-    document = Document.deep_query(current_user, params)
+    # Because apparently ruby doesn't memoize anything
+    @document.graphs.each do |graph|
+      graphs[graph.id] = graph
 
-    document.title = params[:document]['title']
+      graph.nodes.each do |node|
+        nodes[node.id] = node
+      end
 
-    document.save!
+      graph.edges.each do |edge|
+        edges[edge.id] = edge
+      end
 
-    graphs = {}
-    tags = {}
-    nodes = {}
-    edges = []
+      graph.tags.each do |tag|
+        tags[tag.id] = tag
+      end
+    end
 
-    params[:document][:graphs].each do |g|
+    params[:document][:graphs].each do |graph_obj|
 
-      vis_id = g['id']
-      graph = nil
-
-      graph = document.graphs.find_or_initialize_by(vis_id: vis_id)
-
-      graph.save!
-      graphs[vis_id] = graph
+      graphs[graph_obj[:id]] = @document.graphs.create!(id: graph_obj[:id]) unless graphs.has_key?(graph_obj[:id])
 
     end
 
-    params[:document][:tags].each do |t|
+    params[:document][:tags].each do |tag_obj|
 
-      vis_id = t[:id]
+      graph = graphs[tag_obj[:graph_id]]
 
-      tag = tags[vis_id]
+      unless graph.nil?
 
-      if tag.nil?
-        tag = document.tags.find_or_initialize_by(vis_id: vis_id)
-      end
+        tag = tags[tag_obj[:id]]
 
-      unless t[:name].nil? || t[:name].empty? || t[:name].eql?(tag.name)
-        tag.name = t[:name]
-        tag.graph = graphs[t[:graph_id]]
-      end
-
-      tag.save!
-
-      tags[tag[:id]] = tag
-
-    end
-
-
-    params[:document][:nodes].each do |n|
-
-      vis_id = n['id']
-      label = n['label']
-      graph_id = n['graph_id']
-
-      node = document.nodes.find_or_initialize_by(vis_id: vis_id)
-
-      node.label = label
-      node.graph = graphs[graph_id]
-
-      unless n['shape'].nil? || n['shape'].eql?(node.vis_shape)
-        node.vis_shape = n['shape']
-      end
-
-
-      if n[:tags].length > 0
-
-        to_remove = node.node_tags.joins(:tag).where.not(:tags => {:vis_id => n[:tags]})
-
-        if to_remove.length > 0
-          to_remove.destroy_all
+        if tag.nil?
+          tag = graph.tags.create!(id: tag_obj[:id])
+          tags[tag_obj[:id]] = tag
         end
 
-        n[:tags].each do |nt|
+        tag.name = tag_obj[:name] unless tag_obj[:name].nil? or tag.name.eql?(tag_obj[:name])
 
-          tag = tags[nt]
-          tag = document.tags.find_by(vis_id: nt)
+        if tag_obj.has_key?(:color) && !tag.color.eql?(tag_obj[:color]) && !(tag_obj[:color].match(%r{\A#(\h{6}|\h{3}|\h)\z}).nil?)
+          tag.color = tag_obj[:color]
+        end
 
-          unless tag.nil? || node.tags.where(vis_id: nt).exists?
-            node.tags << tag
+        if tag_obj.has_key?(:shape) && !tag.shape.eql?(tag_obj[:shape])
+          tag.shape = tag_obj[:shape]
+        end
+
+        if tag_obj.has_key?(:title) && !tag.title.eql?(tag_obj[:title])
+          tag.title = tag_obj[:title]
+        end
+
+        tag.save!
+
+      end
+
+    end
+
+
+    params[:document][:nodes].each do |node_obj|
+
+      graph = graphs[node_obj[:graph_id]]
+
+      unless graph.nil?
+
+        node = nodes[node_obj[:id]]
+
+        if node.nil?
+          node = graph.nodes.create!(id: node_obj[:id])
+          nodes[node_obj[:id]] = node
+        end
+
+        node.label = node_obj[:label] unless node_obj[:label].nil? || node.label.eql?(node_obj[:label])
+        node.vis_shape = node_obj[:shape] unless node_obj[:shape].nil? || node.vis_shape.eql?(node_obj[:shape])
+
+        if node_obj.has_key?(:tags) && node_obj[:tags].length > 0
+
+          node.node_tags.each do |node_tag|
+            if node_obj[:tags].include?(node_tag.tag_id)
+              node_obj[:tags].delete(node_tag.tag_id)
+            else
+              node_tag.destroy
+            end
           end
-        end
-        
 
-      else
-        to_remove = node.node_tags
-        if to_remove.length > 0
-          to_remove.destroy_all
+          node_obj[:tags].each do |tag_id|
+            tag = tags[tag_id]
+            unless tag.nil?
+              node.tags << tag
+            end
+          end
+
+
+          if node.node_tags.empty?
+            node.primary_tag = nil
+          elsif node_obj.has_key?(:group)
+
+            node.primary_tag = nil
+
+            unless node_obj[:group].nil? || !tags.has_key?(node_obj[:group])
+              node.primary_tag = tags[node_obj[:group]]
+            end
+
+          end
+
+        else
+          node.node_tags.destroy_all
+          node.primary_tag = nil
         end
+
+        node.save!
+
       end
 
-      nodes[vis_id] = node
-
-      node.save!
     end
 
-    params[:document][:edges].each do |e|
+    params[:document][:edges].each do |edge_obj|
 
-      edge = nil
+      graph = graphs[edge_obj[:graph_id]]
+      node_from = nodes[edge_obj[:from]]
+      node_to = nodes[edge_obj[:to]]
 
-      vis_id = e['id']
-      node_from_vis_id = e['from']
-      node_to_vis_id = e['to']
+      unless graph.nil? || node_from.nil? || node_to.nil?
 
-      graph_vis_id = e['graph_id']
+        edge = edges[edge_obj[:id]]
 
-      edge = document.edges.find_or_initialize_by(vis_id: vis_id)
+        if edge.nil?
 
-      unless e['label'].nil? || e['label'].eql?(edge.label)
-        edge.label = e['label']
+          edge = graph.edges.new(id: edge_obj[:id], node_from: node_from, node_to: node_to)
+          edges[edge_obj[:id]] = edge
+
+        end
+
+        edge.label = edge_obj[:label] unless edge_obj[:label].nil? || edge.label.eql?(edge_obj[:label])
+        edge.save!
+
       end
-
-
-      edge.graph = graphs[graph_vis_id]
-      edge.node_from = nodes[node_from_vis_id]
-      edge.node_to = nodes[node_to_vis_id]
-
-      unless seen_edges.has_key? edge
-        seen_edges[edge] = vis_id
-      end
-
-      edge.save!
     end
 
     params[:document][:removed_edges].each do |vis_id|
-      target = document.edges.find_by(:vis_id => vis_id)
-
-      target.destroy! unless target.nil?
+      edge = edges[vis_id]
+      unless edge.nil?
+        edge.destroy
+        edges.delete(vis_id)
+      end
     end
 
     params[:document][:removed_nodes].each do |vis_id|
-
-      target = document.nodes.find_by(:vis_id => vis_id)
-      target.destroy! unless target.nil?
-
+      node = nodes[vis_id]
+      unless node.nil?
+        node.destroy
+        nodes.delete(vis_id)
+      end
     end
 
     head :no_content
@@ -210,7 +233,7 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.joins(:user).where({user: current_user}).find(params[:id])
+      @document = Document.includes(:graphs => [:nodes => [:node_tags => [:tag]], :edges => [:node_from, :node_to], :tags => []]).joins(:user).where(user: current_user).find(params[:id])
     end
 
       # query document from the database and create a structure that is conducive to serialization
@@ -274,9 +297,9 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :primary_tag],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group],
                                        :edges => [:id, :graph_id, :label, :from, :to],
-                                        :tags => [:id, :name, :graph_id])
+                                        :tags => [:id, :name, :graph_id, :color, :shape, :title])
     end
 
   protected

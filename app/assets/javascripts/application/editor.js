@@ -10,6 +10,8 @@
 
         this.current = null;
 
+        this.defaultGroups = null;
+
         this.container = document.getElementById(VIS_CONTAINER_ID);
 
         this.data = {
@@ -55,10 +57,14 @@
                 },
                 deleteEdge: function(data, callback) {
 
-                    console.log('in delete edge');
-
                     data.edges.forEach(function(edgeId) {
                         _this.current.removed_edges.push(edgeId);
+                    });
+
+                    _this.listeners.forEach(function(handler) {
+                        if (handler.name === 'deselectEdge') {
+                            handler.fn.apply(handler.context, [null]);
+                        }
                     });
 
                     callback(data);
@@ -80,6 +86,10 @@
         this.listeners = [];
 
         this.handle = new vis.Network(this.container, this.data, this.options);
+
+        this.resetGroups = function() {
+            _this.__resetGroups();
+        };
 
     }
 
@@ -104,6 +114,11 @@
             this.data.nodes.add(this.current.nodes);
             this.data.edges.add(this.current.edges);
             this.data.tags.add(this.current.tags);
+
+            this.syncGroups();
+
+            this.defaultGroups = {};
+            $.extend(true, this.defaultGroups, this.handle.groups.groups );
 
 
         }
@@ -150,6 +165,41 @@
 
         }
 
+    };
+
+    Vis.prototype.syncGroups = function() {
+
+        var _this = this;
+
+        var options = {groups: {}};
+
+        if (this.current !== null && this.current.tags !== undefined && this.current.tags !== null) {
+            this.current.tags.forEach(function(tag) {
+                ['color', 'shape', 'title'].forEach(function(property) {
+                   if (tag.hasOwnProperty(property) && tag[property] !== undefined && tag[property] !== null) {
+                       if (!options.groups.hasOwnProperty(tag.id)) options.groups[tag.id] = {};
+
+                       options.groups[tag.id][property] = tag[property];
+                   }
+                });
+            });
+        }
+        try{
+            this.handle.setOptions(options);
+        } catch(e) {
+            console.log(e);
+        }
+
+    };
+
+    Vis.prototype.__resetGroups = function() {
+        if (this.defaultGroups !== null) {
+            try {
+                this.handle.setOptions({groups: this.defaultGroups});
+            } catch (e) {
+                console.log(e);
+            }
+        }
     };
 
     function Document() {
@@ -271,7 +321,15 @@
     };
 
     Graph.prototype.update = function(scope, window) {
-        this.cancelEdit(scope, window);
+        if (this.previous_state !== null) {
+            scope.state = this.previous_state;
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
+        }
+        this.state = null;
+        this.tag.current = null;
+
+        scope.vis.syncGroups();
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -282,6 +340,7 @@
         }
         this.state = null;
         this.tag.current = null;
+
     };
 
     Graph.prototype.addTag = function() {
@@ -300,12 +359,15 @@
         return {
             id: vis.util.randomUUID(),
             graph_id: graph_id,
-            name: 'New Tag'
+            name: null,
+            title: null,
+            shape: null
         };
     };
 
     Tag.prototype.select = function(tag) {
         this.current = tag;
+
     };
 
     Tag.prototype.class = function(tag) {
@@ -314,6 +376,8 @@
     };
 
     function Node() {
+
+        var _this = this;
 
         this.current = null;
 
@@ -328,6 +392,10 @@
 
         this.defaults = {
             shape: this.shapes[0]
+        };
+
+        this.hasTag = function(value) {
+            return _this.__hasTag(value);
         };
 
     }
@@ -347,6 +415,10 @@
 
         if (this.current !== null) {
 
+            if (this.current.hasOwnProperty('shape') &&
+                (this.current.shape === undefined || this.current.shape === null || this.current.shape === ''))
+                delete this.current['shape'];
+
             scope.vis.data.nodes.update(this.current);
             this.current = null;
 
@@ -354,6 +426,11 @@
                 scope.state = window.GRAPH_STATE.BASE;
         }
 
+    };
+
+    Node.prototype.__hasTag = function(value) {
+        if (this.current !== null && this.current.tags !== undefined && this.current.tags !== null && this.current.tags instanceof Array) return this.current.tags.includes(value.id);
+        return false;
     };
 
     function Edge() {
@@ -663,7 +740,8 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
-                                tags: node.tags
+                                tags: node.tags,
+                                group: node.group
                             });
                         }
 
@@ -683,7 +761,10 @@
                             transfer_object.tags.push({
                                 id: tag.id,
                                 name: tag.name,
-                                graph_id: graph.id
+                                graph_id: graph.id,
+                                color: tag.color,
+                                shape: tag.shape,
+                                title: tag.title
                             });
                         }
 

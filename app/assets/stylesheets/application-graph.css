@@ -3,7 +3,7 @@
 }
 
 #graph-options-overlay .graph-options .graph-subview {
-    position: absolute; left: 0px; right: 0px; bottom: 0px; top: 0px;
+    position: absolute; left: 0px; right: 0px; bottom: 50px; top: 0px;
 }
 
 div.graph-options div.graph-subview div.tag-selection {
@@ -29,6 +29,6 @@ div#tag-list .current-tags {
 }
 
 div#tag-properties {
-    border-left: solid 4px #000; padding: 20px;
+    border-left: solid 4px #000; padding: 20px; overflow: hidden; overflow-y: scroll;
 }
 
