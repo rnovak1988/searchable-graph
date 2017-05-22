@@ -45,6 +45,11 @@
             });
         };
 
+        $scope.rename_document = function() {
+            if ($rootScope.current_document !== undefined && $rootScope.current_document !== null)
+                $rootScope.$emit('graph.rename_document');
+        };
+
         $scope.navigate_to = function(new_state) {
             switch(new_state) {
                 case 'create_document':

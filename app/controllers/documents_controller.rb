@@ -62,6 +62,11 @@ class DocumentsController < ApplicationController
     nodes   = {}
     edges   = {}
 
+    unless params[:document][:title].nil? || @document.title.eql?(params[:document][:title])
+      @document.title = params[:document][:title]
+      @document.save!
+    end
+
     # Because apparently ruby doesn't memoize anything
     @document.graphs.each do |graph|
       graphs[graph.id] = graph

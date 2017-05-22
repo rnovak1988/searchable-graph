@@ -34,7 +34,8 @@
         'EDIT_NODE': 'Editing the information for a selected node',
         'ADD_EDGE': 'Add an edge between two nodes',
         'EDIT_EDGE': 'Edit the information for an edge (including removing that edge)',
-        'EDIT_OPTIONS': 'Edit the options for the graph'
+        'EDIT_OPTIONS': 'Edit the options for the graph',
+        'RENAME_DOCUMENT': 'Change the title of the document'
     };
 
     window.OPTIONS_STATE = {

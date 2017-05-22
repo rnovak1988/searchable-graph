@@ -208,6 +208,9 @@
 
     function Document() {
 
+        this.previous_state = null;
+        this.previous_title = null;
+
         this.current = {
             id      : null,
             title   : null,
@@ -261,6 +264,48 @@
         }
     };
 
+    Document.prototype.rename = function(scope, window) {
+
+        this.previous_state = scope.state;
+        this.previous_title = this.current.title;
+
+        scope.state = window.GRAPH_STATE.RENAME_DOCUMENT;
+
+    };
+
+    Document.prototype.cancelRename = function(scope, window) {
+
+        if (this.previous_state !== null) {
+
+            if (this.previous_title !== null) {
+                this.current.title = this.previous_title;
+                this.previous_title = null;
+            }
+
+            scope.state = this.previous_state;
+
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
+        }
+
+    };
+
+    Document.prototype.saveRename = function(root, scope, window) {
+
+        this.previous_title = null;
+
+        if (root.current_document !== null) {
+            root.current_document.title = this.current.title;
+        }
+
+        if (this.previous_state !== null) {
+            scope.state = this.previous_state;
+            this.previous_state = null;
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
+        }
+
+    };
 
     function Graph() {
 
@@ -554,6 +599,14 @@
                         _this.angular.scope.document.save(_this.angular.service, _this.angular.scope.vis);
                     },
                     handle: null
+                },
+                {
+                    event: 'graph.rename_document',
+                    listener: function(event, data) {
+                        _this.angular.scope.document.rename(_this.angular.scope, _this.angular.window);
+                        _this.angular.timeout();
+                    },
+                    handle: null
                 }
             ],
             'options': [
@@ -574,6 +627,18 @@
                     ref: this.angular.scope.graph.update,
                     args: [this.angular.scope, this.angular.window],
                     context: this.angular.scope.graph
+                },
+                {
+                    event: 'cancelRename',
+                    ref: this.angular.scope.document.cancelRename,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.document
+                },
+                {
+                    event: 'saveRename',
+                    ref: this.angular.scope.document.saveRename,
+                    args: [this.angular.root, this.angular.scope, this.angular.window],
+                    context: this.angular.scope.document
                 }
             ]
         };
