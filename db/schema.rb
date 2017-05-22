@@ -12,63 +12,71 @@
 
 ActiveRecord::Schema.define(version: 20170518052641) do
 
-  create_table "documents", force: :cascade do |t|
+  create_table "documents", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "user_id"
-    t.index ["user_id"], name: "index_documents_on_user_id"
+    t.index ["user_id"], name: "index_documents_on_user_id", using: :btree
   end
 
-  create_table "edges", id: nil, force: :cascade do |t|
+  create_table "edges", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "label"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
-    t.         "graph_id"
-    t.         "node_from_id"
-    t.         "node_to_id"
-    t.index ["id"], name: "sqlite_autoindex_edges_1", unique: true
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
+    t.string   "graph_id",     limit: 36
+    t.string   "node_from_id", limit: 36
+    t.string   "node_to_id",   limit: 36
+    t.index ["graph_id"], name: "fk_rails_f849ba9665", using: :btree
+    t.index ["id"], name: "index_edges_on_id", using: :btree
+    t.index ["node_from_id"], name: "fk_rails_af6a677b01", using: :btree
+    t.index ["node_to_id"], name: "fk_rails_97f994c586", using: :btree
   end
 
-  create_table "graphs", id: nil, force: :cascade do |t|
+  create_table "graphs", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.integer  "document_id"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
-    t.index ["document_id"], name: "index_graphs_on_document_id"
-    t.index ["id"], name: "sqlite_autoindex_graphs_1", unique: true
+    t.index ["document_id"], name: "index_graphs_on_document_id", using: :btree
+    t.index ["id"], name: "index_graphs_on_id", using: :btree
   end
 
-  create_table "node_tags", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.         "node_id"
-    t.         "tag_id"
-    t.index ["node_id", "tag_id"], name: "index_node_tags_on_node_id_and_tag_id", unique: true
+  create_table "node_tags", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.string   "node_id",    limit: 36
+    t.string   "tag_id",     limit: 36
+    t.index ["node_id", "tag_id"], name: "index_node_tags_on_node_id_and_tag_id", unique: true, using: :btree
+    t.index ["node_id"], name: "index_node_tags_on_node_id", using: :btree
+    t.index ["tag_id"], name: "index_node_tags_on_tag_id", using: :btree
   end
 
-  create_table "nodes", id: nil, force: :cascade do |t|
+  create_table "nodes", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "label"
-    t.text     "notes"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
-    t.         "graph_id"
+    t.text     "notes",          limit: 65535
+    t.datetime "created_at",                   null: false
+    t.datetime "updated_at",                   null: false
+    t.string   "graph_id",       limit: 36
     t.string   "vis_shape"
-    t.         "primary_tag_id"
-    t.index ["id"], name: "sqlite_autoindex_nodes_1", unique: true
+    t.string   "primary_tag_id"
+    t.index ["graph_id"], name: "fk_rails_10f83f4418", using: :btree
+    t.index ["id"], name: "index_nodes_on_id", using: :btree
+    t.index ["primary_tag_id"], name: "fk_rails_4b6602a37c", using: :btree
   end
 
-  create_table "tags", id: nil, force: :cascade do |t|
+  create_table "tags", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.         "graph_id"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.string   "graph_id",   limit: 36
     t.string   "color"
     t.string   "shape"
     t.string   "title"
-    t.index ["id"], name: "sqlite_autoindex_tags_1", unique: true
+    t.index ["graph_id"], name: "fk_rails_49d2d80cd8", using: :btree
+    t.index ["id"], name: "index_tags_on_id", using: :btree
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "email",                  default: "", null: false
     t.string   "encrypted_password",     default: "", null: false
     t.string   "reset_password_token"
@@ -88,9 +96,19 @@ ActiveRecord::Schema.define(version: 20170518052641) do
     t.datetime "locked_at"
     t.datetime "created_at",                          null: false
     t.datetime "updated_at",                          null: false
-    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
+    t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   end
 
+  add_foreign_key "documents", "users"
+  add_foreign_key "edges", "graphs"
+  add_foreign_key "edges", "nodes", column: "node_from_id"
+  add_foreign_key "edges", "nodes", column: "node_to_id"
+  add_foreign_key "graphs", "documents"
+  add_foreign_key "node_tags", "nodes"
+  add_foreign_key "node_tags", "tags"
+  add_foreign_key "nodes", "graphs"
+  add_foreign_key "nodes", "tags", column: "primary_tag_id"
+  add_foreign_key "tags", "graphs"
 end

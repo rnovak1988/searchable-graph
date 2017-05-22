@@ -5,20 +5,28 @@
 #   gem 'sqlite3'
 #
 default: &default
-  adapter: sqlite3
+  adapter: mysql2
   pool: 5
   timeout: 5000
+  host: <%= ENV['GRAPH_DB_HOST'] %>
+  username: <%= ENV['GRAPH_DB_USERNAME'] %>
+  password: <%= ENV['GRAPH_DB_PASSWORD'] %>
+  database: graph
 
 development:
   <<: *default
-  database: db/development.sqlite3
+  host: <%= ENV['GRAPH_DB_HOST'] %>
+  username: <%= ENV['GRAPH_DB_USERNAME'] %>
+  password: <%= ENV['GRAPH_DB_PASSWORD'] %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+  adapter: sqlite3
   database: db/test.sqlite3
+
 
 production:
   <<: *default
