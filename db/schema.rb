@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170518052641) do
+ActiveRecord::Schema.define(version: 20170523030307) do
+
+  create_table "clusters", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
+    t.string   "shape"
+    t.string   "color"
+    t.string   "label"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.string   "graph_id",   limit: 36
+    t.index ["graph_id"], name: "fk_rails_8fbc508575", using: :btree
+  end
 
   create_table "documents", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "title"
@@ -101,6 +111,7 @@ ActiveRecord::Schema.define(version: 20170518052641) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   end
 
+  add_foreign_key "clusters", "graphs"
   add_foreign_key "documents", "users"
   add_foreign_key "edges", "graphs"
   add_foreign_key "edges", "nodes", column: "node_from_id"

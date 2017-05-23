@@ -6,6 +6,7 @@ class Document < ApplicationRecord
   has_many :nodes, :through => :graphs
   has_many :edges, :through => :graphs
   has_many :tags, :through => :graphs
+  has_many :clusters, :through => :graphs
 
   def self.deep_query(user, params)
     self.includes(:graphs => [:nodes => [:node_tags], :edges => [], :tags => []]).joins(:user).where({user: user}).find(params[:id])
@@ -43,6 +44,10 @@ class Document < ApplicationRecord
         graph_obj[:tags] << tag_obj unless graph_obj[:tags].include? tag_obj
       end
 
+      graph.clusters.each do |cluster|
+        cluster_obj = cluster.to_obj
+        graph_obj[:clusters] << cluster_obj unless graph_obj[:clusters].include? cluster_obj
+      end
     end
 
     result

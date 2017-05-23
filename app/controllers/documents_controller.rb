@@ -61,6 +61,7 @@ class DocumentsController < ApplicationController
     tags    = {}
     nodes   = {}
     edges   = {}
+    clusters= {}
 
     unless params[:document][:title].nil? || @document.title.eql?(params[:document][:title])
       @document.title = params[:document][:title]
@@ -87,6 +88,33 @@ class DocumentsController < ApplicationController
     params[:document][:graphs].each do |graph_obj|
 
       graphs[graph_obj[:id]] = @document.graphs.create!(id: graph_obj[:id]) unless graphs.has_key?(graph_obj[:id])
+
+    end
+
+    params[:document][:clusters].each do |cluster_obj|
+
+      graph = graphs[cluster_obj[:graph_id]]
+
+      unless graph.nil?
+
+        cluster = clusters[cluster_obj[:id]]
+
+        if cluster.nil?
+          cluster = graph.clusters.create!(id: cluster_obj[:id])
+          clusters[cluster_obj[:id]] = cluster
+        end
+
+        cluster.label = cluster_obj[:label] unless cluster_obj[:label].nil? or cluster.label.eql?(cluster_obj[:label])
+
+        if cluster_obj.has_key?(:color) && !cluster.color.eql?(cluster_obj[:color]) && !(cluster_obj[:color].match(%r{\A#(\h{6}|\h{3}|\h)\z}).nil?)
+          cluster.color = cluster_obj[:color]
+        end
+
+        cluster.shape = cluster_obj[:shape] unless !(cluster_obj.has_key?(:shape)) or cluster_obj[:shape].nil? or cluster.shape.eql?(cluster_obj[:shape])
+
+        cluster.save!
+
+      end
 
     end
 
@@ -238,7 +266,7 @@ class DocumentsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_document
-      @document = Document.includes(:graphs => [:nodes => [:node_tags => [:tag]], :edges => [:node_from, :node_to], :tags => []]).joins(:user).where(user: current_user).find(params[:id])
+      @document = Document.includes(:graphs => [:nodes => [:node_tags => [:tag]], :edges => [:node_from, :node_to], :tags => [], :clusters => []]).joins(:user).where(user: current_user).find(params[:id])
     end
 
       # query document from the database and create a structure that is conducive to serialization
@@ -304,7 +332,8 @@ class DocumentsController < ApplicationController
                                        :graphs => [:id],
                                        :nodes => [:id, :graph_id, :label, :shape, :tags, :group],
                                        :edges => [:id, :graph_id, :label, :from, :to],
-                                        :tags => [:id, :name, :graph_id, :color, :shape, :title])
+                                        :tags => [:id, :name, :graph_id, :color, :shape, :title],
+                                      :clusters => [:id, :label, :graph_id, :color, :shape])
     end
 
   protected

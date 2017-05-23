@@ -3,7 +3,16 @@
         <div class="panel-heading">
             <div class="col-lg-6 col-md-6 col-sm-6">
                 <ul class="nav nav-tabs">
-                    <li role="presentation" class="active"><a href="javascript:void(0)">Tags</a></li>
+                    <li role="presentation"
+                        data-ng-class="graph.tabClass(graph.STATES.EDIT_TAGS)"
+                        data-ng-click="graph.state = graph.STATES.EDIT_TAGS">
+                            <a href="javascript:void(0)">Tags <span class="glyphicon glyphicon-tags"></span></a>
+                    </li>
+                    <li role="presentation"
+                        data-ng-class="graph.tabClass(graph.STATES.EDIT_CLUSTERS)"
+                        data-ng-click="graph.state = graph.STATES.EDIT_CLUSTERS">
+                        <a href="javascript:void(0)">Clusters <span class="glyphicon glyphicon-th-large"></span></a>
+                    </li>
                 </ul>
             </div>
             <div class="col-lg-6 col-md-6 col-sm-6">
@@ -13,43 +22,78 @@
             </div>
         </div>
         <div class="graph-options panel-body">
-            <div id="tag-view"  data-ng-show="graph.state === graph.STATES.EDIT_TAGS" class="graph-subview ng-hide">
-                <div class="tag-selection">
-                    <div id="tag-list" class="col-lg-3 col-md-3">
-                        <div class="add-tag">
-                            <div class="form-group">
-                                <div class="btn btn-success form-control" data-ng-click="graph.addTag()">Add Tag</div>
-                            </div>
-                        </div>
-                        <div class="current-tags">
-                            <ul class="nav nav-pills nav-stacked">
-                                <li data-ng-repeat="tag in graph.current.tags" data-ng-class="graph.tag.class(tag)" role="presentation">
-                                    <a data-ng-click="graph.tag.select(tag)" href="javascript:void(0)">{{tag.name}}</a>
-                                </li>
-                            </ul>
+            <div id="tag-view" data-ng-show="graph.state === graph.STATES.EDIT_TAGS" class="graph-subview ng-hide">
+                <div id="" class="col-lg-3 col-md-3 left-pane list">
+                    <div class="add">
+                        <div class="form-group">
+                            <div class="btn btn-success form-control" data-ng-click="graph.addTag()">Add Tag</div>
                         </div>
                     </div>
-                    <div id="tag-properties" class="col-lg-9 col-md-9">
-                        <div data-ng-show="graph.tag.current !== null" class="ng-hide">
-                            <div class="form-group">
-                                <label>Name</label>
-                                <input type="text" class="form-control" data-ng-model="graph.tag.current.name" />
-                            </div>
-                            <div class="form-group">
-                                <label>Tool Tip</label>
-                                <input type="text" class="form-control" data-ng-model="graph.tag.current.title" />
-                            </div>
-                            <div class="form-group">
-                                <label>Color</label>
-                                <input type="color" class="form-control" data-ng-model="graph.tag.current.color" />
-                            </div>
-                            <div class="form-group">
-                                <label>Shape</label>
-                                <select class="form-control" data-ng-model="graph.tag.current.shape">
-                                    <option value></option>
-                                    <option data-ng-repeat="shape in node.shapes" data-ng-value="shape">{{shape}}</option>
-                                </select>
-                            </div>
+                    <div class="current">
+                        <ul class="nav nav-pills nav-stacked">
+                            <li data-ng-repeat="tag in graph.current.tags" data-ng-class="graph.tag.class(tag)" role="presentation">
+                                <a data-ng-click="graph.tag.select(tag)" href="javascript:void(0)">{{tag.name}}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-9 right-pane">
+                    <div data-ng-show="graph.tag.current !== null" class="ng-hide">
+                        <h3>Tag {{graph.tag.current.id}}</h3>
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" data-ng-model="graph.tag.current.name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Tool Tip</label>
+                            <input type="text" class="form-control" data-ng-model="graph.tag.current.title" />
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="color" class="form-control" data-ng-model="graph.tag.current.color" />
+                        </div>
+                        <div class="form-group">
+                            <label>Shape</label>
+                            <select class="form-control" data-ng-model="graph.tag.current.shape">
+                                <option value></option>
+                                <option data-ng-repeat="shape in node.shapes" data-ng-value="shape">{{shape}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="edit-clusters-view" data-ng-show="graph.state === graph.STATES.EDIT_CLUSTERS" class="graph-subview ng-hide">
+                <div class="left-pane col-lg-3 col-md-3 list">
+                    <div class="add">
+                        <div class="form-group">
+                            <div class="btn btn-success form-control" data-ng-click="graph.addCluster()">New Cluster <span class="glyphicon glyphicon-plus"></span></div>
+                        </div>
+                    </div>
+                    <div class="current">
+                        <div class="nav nav-pills nav-stacked">
+                            <li data-ng-repeat="cluster in graph.current.clusters" data-ng-class="graph.cluster.class(cluster)" role="presentation">
+                                <a data-ng-click="graph.cluster.select(cluster)" href="javascript:void(0)">{{cluster.label}}</a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-9 right-pane">
+                    <div data-ng-show="graph.cluster.current !== null" class="ng-hide">
+                        <h3>Cluster {{graph.cluster.current.id}}</h3>
+                        <div class="form-group">
+                            <label for="edit-cluster-label">Cluster Label</label>
+                            <input id="edit-cluster-label" type="text" class="form-control" data-ng-model="graph.cluster.current.label" />
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-cluster-shape">Shape</label>
+                            <select id="edit-cluster-shape" class="form-control" data-ng-model="graph.cluster.current.shape">
+                                <option value></option>
+                                <option data-ng-repeat="shape in node.shapes" data-ng-value="shape">{{shape}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-cluster-color">Color</label>
+                            <input type="color" id="edit-cluster-color" class="form-control" />
                         </div>
                     </div>
                 </div>

@@ -309,30 +309,54 @@
 
     function Graph() {
 
+        var _this = this;
+
         this.STATES = {
-            EDIT_TAGS: 'Edit the properties of tags'
+            EDIT_TAGS: 'Edit the properties of tags',
+            EDIT_CLUSTERS: 'Add/Edit Clusters'
         };
 
         this.state = null;
 
         this.tag = new Tag();
+        this.cluster = new Cluster();
 
         this.index = null;
         this.current = null;
 
         this.previous_state = null;
 
+        this.tabClass = function(state) {
+            return _this.__tabClass(state);
+        };
+
+        this.addCluster = function() {
+            return _this.__addCluster.apply(_this, arguments);
+        };
+
     }
 
     Graph.newGraph = function() {
         return {
-            id: vis.util.randomUUID(),
-            nodes: [],
-            edges: [],
-            tags: [],
+            id:         vis.util.randomUUID(),
+            nodes:      [],
+            edges:      [],
+            tags:       [],
+            clusters:   [],
             removed_nodes: [],
             removed_edges: []
         };
+    };
+
+    Graph.prototype.__tabClass = function(state) {
+        if (this.state === state) return 'active';
+        return '';
+    };
+
+    Graph.prototype.__addCluster = function() {
+        var cluster = Cluster.newCluster();
+        this.current.clusters.push(cluster);
+        this.cluster.select(cluster);
     };
 
     Graph.prototype.import = function(document, index) {
@@ -349,6 +373,9 @@
             if (this.current !== null) {
                 this.current.backup_tags = [];
                 $.extend(true, this.current.backup_tags, this.current.tags);
+
+                this.current.backup_clusters = [];
+                $.extend(true, this.current.backup_clusters, this.current.clusters);
             }
 
         }
@@ -386,6 +413,9 @@
         this.current.backup_tags = [];
         $.extend(true, this.current.backup_tags, this.current.tags);
 
+        this.current.backup_clusters = [];
+        $.extend(true, this.current.backup_clusters, this.current.clusters);
+
         scope.vis.syncGroups();
     };
 
@@ -397,11 +427,18 @@
         }
         this.state = null;
         this.tag.current = null;
+        this.cluster.current = null;
 
         if (this.current.hasOwnProperty('backup_tags')) {
             this.current.tags = [];
             $.extend(true, this.current.tags, this.current.backup_tags);
+
             scope.vis.resetGroups();
+        }
+
+        if (this.current.hasOwnProperty('backup_clusters')) {
+            this.current.clusters = [];
+            $.extend(true, this.current.clusters, this.current.backup_clusters);
         }
 
     };
@@ -438,6 +475,41 @@
         return '';
     };
 
+    function Cluster() {
+        var _this = this;
+
+        this.current = null;
+
+        this.select = function() {
+            return _this.__select.apply(_this, arguments);
+        };
+
+        this.class = function() {
+            return _this.__class.apply(_this, arguments);
+        };
+    }
+
+    Cluster.newCluster = function() {
+        var id = vis.util.randomUUID();
+        return {
+            id:     id,
+            label:  id,
+            shape:  null,
+            color:  null
+        };
+    };
+
+    Cluster.prototype.__select = function(cluster) {
+        this.current = cluster;
+    };
+
+    Cluster.prototype.__class = function(cluster) {
+        if (this.current === cluster) return 'active';
+        return '';
+    };
+
+
+
     function Node() {
 
         var _this = this;
@@ -464,6 +536,8 @@
     }
 
     Node.prototype.select = function(event, scope, window) {
+
+        if (scope.vis.handle.isCluster(event.nodes[0])) return;
 
         if (this.current !== null)
             this.update(event, scope, window);
@@ -802,6 +876,7 @@
                         nodes: [],
                         edges: [],
                         tags: [],
+                        clusters: [],
                         removed_nodes: [],
                         removed_edges: []
                     };
@@ -811,6 +886,7 @@
                         var nodes = graph.nodes;
                         var edges = graph.edges;
                         var tags = graph.tags;
+                        var clusters = graph.clusters;
 
                         transfer_object.graphs.push({
                             id: graph.id
@@ -848,6 +924,17 @@
                                 color: tag.color,
                                 shape: tag.shape,
                                 title: tag.title
+                            });
+                        }
+
+                        for (var cluster_index = 0; cluster_index < clusters.length; cluster_index++) {
+                            var cluster = clusters[cluster_index];
+                            transfer_object.clusters.push({
+                                id: cluster.id,
+                                graph_id: graph.id,
+                                color: cluster.color,
+                                shape: cluster.shape,
+                                label: cluster.label
                             });
                         }
 
