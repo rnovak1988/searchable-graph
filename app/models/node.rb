@@ -11,6 +11,8 @@ class Node < ApplicationRecord
   has_many :tags, through: :node_tags
 
   belongs_to :primary_tag, :class_name => Tag, :optional => true
+  belongs_to :cluster, :optional => true
+
 
   accepts_nested_attributes_for :node_tags, :allow_destroy => true
 
@@ -26,7 +28,8 @@ class Node < ApplicationRecord
         :graph_id => graph_id,
         :shape    => vis_shape,
         :tags     => node_tags.map(&:tag_id),
-        :group    => primary_tag_id
+        :group    => primary_tag_id,
+        :cluster  => cluster_id
     }
     if vis_shape.nil? || vis_shape.empty?
       unless primary_tag.nil? || primary_tag.shape.nil?

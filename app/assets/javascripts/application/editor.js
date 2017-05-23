@@ -95,6 +95,14 @@
             _this.__syncGroups();
         };
 
+        this.syncClusters = function() {
+            return _this.__syncClusters.apply(_this, arguments);
+        };
+
+        this.syncCluster = function() {
+            return _this.__syncCluster.apply(_this, arguments);
+        }
+
     }
 
     Vis.prototype.load = function(document, graph) {
@@ -120,7 +128,7 @@
             this.data.tags.add(this.current.tags);
 
             this.syncGroups();
-
+            this.syncClusters();
 
         }
     };
@@ -203,6 +211,39 @@
             } catch (e) {
                 console.log(e);
             }
+        }
+    };
+
+    Vis.prototype.__syncClusters = function() {
+        var _this = this;
+        if (this.current !== null && this.current.hasOwnProperty('clusters')) {
+            this.current.clusters.forEach(function(cluster) {
+                _this.__syncCluster(cluster);
+            });
+        }
+    };
+
+    Vis.prototype.__syncCluster = function(cluster) {
+        if (cluster !== undefined && cluster !== null) {
+
+            var options = {
+                joinCondition: function (node) {
+                    return node.hasOwnProperty('cluster') && node.cluster === cluster.id;
+                },
+                clusterNodeProperties: {
+                    allowSingleNodeCluster: true
+                }
+            };
+
+            ['id', 'color', 'shape', 'label'].forEach(function (prop) {
+                if (cluster.hasOwnProperty(prop)
+                    && cluster[prop] !== undefined
+                    && cluster[prop] !== null
+                    && cluster[prop] !== '')
+                    options.clusterNodeProperties[prop] = cluster[prop];
+            });
+
+            this.handle.cluster(options);
         }
     };
 
@@ -417,6 +458,7 @@
         $.extend(true, this.current.backup_clusters, this.current.clusters);
 
         scope.vis.syncGroups();
+        scope.vis.syncClusters();
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -544,6 +586,8 @@
 
         this.current = scope.vis.data.nodes.get(event.nodes[0]);
 
+        this.current.backup_cluster = this.current.cluster;
+
         scope.state = window.GRAPH_STATE.EDIT_NODE;
 
     };
@@ -557,6 +601,20 @@
                 delete this.current['shape'];
 
             scope.vis.data.nodes.update(this.current);
+
+            if (this.current.hasOwnProperty('backup_cluster')) {
+
+                var _this = this;
+
+                scope.graph.current.clusters.forEach(function(cluster) {
+                    if (cluster.id === _this.current.cluster ||
+                        cluster.id === _this.current.backup_clusters)
+                        scope.vis.syncCluster(cluster);
+                });
+
+                this.current.backup_cluster = null;
+            }
+
             this.current = null;
 
             if (scope.state === window.GRAPH_STATE.EDIT_NODE)
@@ -899,6 +957,7 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
+                                cluster: node.cluster,
                                 tags: node.tags,
                                 group: node.group
                             });

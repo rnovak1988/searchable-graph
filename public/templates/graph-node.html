@@ -24,6 +24,13 @@
         </select>
     </div>
     <div class="form-group">
+        <label for="edit-node-cluster">Cluster</label>
+        <select id="edit-node-cluster" class="form-control" data-ng-model="node.current.cluster">
+            <option value></option>
+            <option data-ng-repeat="cluster in graph.current.clusters" data-ng-value="cluster.id">{{cluster.label}}</option>
+        </select>
+    </div>
+    <div class="form-group">
         <button type="button" class="btn btn-success form-control" data-ng-click="deselectNode()">
             Save
         </button>

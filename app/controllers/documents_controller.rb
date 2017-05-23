@@ -83,6 +83,11 @@ class DocumentsController < ApplicationController
       graph.tags.each do |tag|
         tags[tag.id] = tag
       end
+
+      graph.clusters.each do |cluster|
+        clusters[cluster.id] = cluster
+      end
+
     end
 
     params[:document][:graphs].each do |graph_obj|
@@ -201,6 +206,15 @@ class DocumentsController < ApplicationController
         else
           node.node_tags.destroy_all
           node.primary_tag = nil
+        end
+
+        if node_obj.has_key?(:cluster) && !node_obj[:cluster].nil?
+          cluster = clusters[node_obj[:cluster]]
+          unless cluster.nil?
+            node.cluster = cluster
+          end
+        else
+          node.cluster = nil
         end
 
         node.save!
@@ -330,7 +344,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id, :color, :shape, :title],
                                       :clusters => [:id, :label, :graph_id, :color, :shape])
