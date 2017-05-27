@@ -255,7 +255,9 @@
             });
 
             this.handle.cluster(options);
-            this.handle.clustering.updateClusteredNode(cluster.id, options.clusterNodeProperties);
+
+            if (this.data.nodes.get({filter: function(node) {return node.cluster === cluster.id; }}).length > 0)
+                this.handle.clustering.updateClusteredNode(cluster.id, options.clusterNodeProperties);
 
         }
     };
