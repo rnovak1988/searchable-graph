@@ -17,7 +17,8 @@
         this.data = {
             nodes: new vis.DataSet([]),
             edges: new vis.DataSet([]),
-            tags: new vis.DataSet([])
+            tags: new vis.DataSet([]),
+            clusters: new vis.DataSet([])
         };
 
         this.options = {
@@ -163,6 +164,7 @@
         this.data.nodes.clear();
         this.data.edges.clear();
         this.data.tags.clear();
+        this.data.clusters.clear();
     };
 
     Vis.prototype.sync = function() {
@@ -226,14 +228,23 @@
     Vis.prototype.__syncCluster = function(cluster) {
         if (cluster !== undefined && cluster !== null) {
 
-            var options = {
-                joinCondition: function (node) {
-                    return node.hasOwnProperty('cluster') && node.cluster === cluster.id;
-                },
-                clusterNodeProperties: {
-                    allowSingleNodeCluster: true
-                }
-            };
+            var container = this.data.clusters.get(cluster.id);
+            var options = container !== null ? container.value : null;
+
+            if (options === null) {
+
+                options = {
+                    joinCondition: function (node) {
+                        return node.hasOwnProperty('cluster') && node.cluster === cluster.id;
+                    },
+                    clusterNodeProperties: {
+                        allowSingleNodeCluster: true
+                    }
+                };
+
+                this.data.clusters.add({id: cluster.id, value: options});
+
+            }
 
             ['id', 'color', 'shape', 'label'].forEach(function (prop) {
                 if (cluster.hasOwnProperty(prop)
@@ -244,6 +255,8 @@
             });
 
             this.handle.cluster(options);
+            this.handle.clustering.updateClusteredNode(cluster.id, options.clusterNodeProperties);
+
         }
     };
 
@@ -367,6 +380,15 @@
 
         this.previous_state = null;
 
+        this.open_clusters = new vis.DataSet([]);
+
+        [this.__tabClass, this.__addCluster, this.__collapseClusters, this.__openCluster, this.__openAllClusters].forEach(function(method) {
+            _this[method.name] = function() {
+                return method.apply(_this, arguments);
+            };
+        });
+
+        /*
         this.tabClass = function(state) {
             return _this.__tabClass(state);
         };
@@ -374,6 +396,8 @@
         this.addCluster = function() {
             return _this.__addCluster.apply(_this, arguments);
         };
+        */
+
 
     }
 
@@ -389,12 +413,69 @@
         };
     };
 
-    Graph.prototype.__tabClass = function(state) {
+    Graph.prototype.hasClosedClusters = function(vis) {
+
+        function filterGenerator(cluster) {
+            return {
+                filter: function(item) {
+                    return item.cluster === cluster.id;
+                }
+            };
+        }
+
+        if (this.current !== null && this.current.hasOwnProperty('clusters') && this.current.clusters.length > 0) {
+            for (var i = 0; i < this.current.clusters.length; i++) {
+                try {
+                    if (vis.data.clusters.get(this.current.clusters[i].id) &&
+                        vis.data.nodes.get(filterGenerator(this.current.clusters[i])).length > 0 &&
+                        this.open_clusters.get(this.current.clusters[i].id) === null) {
+                        return true;
+                    }
+                } catch(e) {
+                    console.log("got an exception: " + e);
+                }
+            }
+        }
+        return false;
+    };
+
+    Graph.prototype.hasOpenClusters = function(vis) {
+        return this.open_clusters.length > 0;
+    };
+
+    Graph.prototype.__openAllClusters = function openAllClusters(event, scope, window) {
+        var _this = this;
+        _this.current.clusters.forEach(function(cluster) {
+            if (_this.open_clusters.get(cluster.id) === null) {
+                scope.vis.handle.openCluster(cluster.id);
+                _this.open_clusters.add(cluster);
+            }
+        });
+    };
+
+    Graph.prototype.__collapseClusters = function collapseClusters(event, scope, window) {
+
+        this.open_clusters.forEach(function(cluster) {
+            scope.vis.syncCluster(cluster);
+        });
+        this.open_clusters.clear();
+
+    };
+
+    Graph.prototype.__openCluster = function openCluster(clusterId, scope, window) {
+        var cluster = null;
+        if ((cluster = scope.vis.data.clusters.get(clusterId)) !== null) {
+            this.open_clusters.add(cluster);
+            scope.vis.handle.openCluster(cluster.id);
+        }
+    };
+
+    Graph.prototype.__tabClass = function tabClass(state) {
         if (this.state === state) return 'active';
         return '';
     };
 
-    Graph.prototype.__addCluster = function() {
+    Graph.prototype.__addCluster = function addCluster() {
         var cluster = Cluster.newCluster();
         this.current.clusters.push(cluster);
         this.cluster.select(cluster);
@@ -443,6 +524,8 @@
     };
 
     Graph.prototype.update = function(scope, window) {
+        var _this = this;
+
         if (this.previous_state !== null) {
             scope.state = this.previous_state;
         } else {
@@ -458,7 +541,14 @@
         $.extend(true, this.current.backup_clusters, this.current.clusters);
 
         scope.vis.syncGroups();
-        scope.vis.syncClusters();
+
+        this.current.clusters.forEach(function(cluster) {
+            console.log(_this.open_clusters.get(cluster.id));
+            if (_this.open_clusters.get(cluster.id) === null) {
+                scope.vis.syncCluster(cluster);
+            }
+        });
+
     };
 
     Graph.prototype.cancelEdit = function(scope, window) {
@@ -550,8 +640,6 @@
         return '';
     };
 
-
-
     function Node() {
 
         var _this = this;
@@ -579,16 +667,24 @@
 
     Node.prototype.select = function(event, scope, window) {
 
-        if (scope.vis.handle.isCluster(event.nodes[0])) return;
+        var node_id = event.nodes[0];
 
         if (this.current !== null)
             this.update(event, scope, window);
 
-        this.current = scope.vis.data.nodes.get(event.nodes[0]);
+        if (scope.vis.handle.isCluster(node_id)) {
 
-        this.current.backup_cluster = this.current.cluster;
+            scope.graph.openCluster(node_id, scope, window);
+            scope.state = window.GRAPH_STATE.BASE;
 
-        scope.state = window.GRAPH_STATE.EDIT_NODE;
+        } else {
+
+            this.current = scope.vis.data.nodes.get(node_id);
+
+            this.current.backup_cluster = this.current.cluster;
+
+            scope.state = window.GRAPH_STATE.EDIT_NODE;
+        }
 
     };
 
@@ -607,8 +703,9 @@
                 var _this = this;
 
                 scope.graph.current.clusters.forEach(function(cluster) {
-                    if (cluster.id === _this.current.cluster ||
-                        cluster.id === _this.current.backup_clusters)
+                    if ((cluster.id === _this.current.cluster ||
+                        cluster.id === _this.current.backup_clusters) &&
+                        scope.graph.open_clusters.get(cluster.id) === null)
                         scope.vis.syncCluster(cluster);
                 });
 
@@ -722,6 +819,22 @@
                         this.angular.scope, this.angular.window
                     ],
                     context: this.angular.scope.edge
+                },
+                {
+                    event: 'expandClusters',
+                    ref: this.angular.scope.graph.__openAllClusters,
+                    args: [
+                        this.angular.scope, this.angular.window
+                    ],
+                    context: this.angular.scope.graph
+                },
+                {
+                    event: 'collapseClusters',
+                    ref: this.angular.scope.graph.__collapseClusters,
+                    args: [
+                        this.angular.scope, this.angular.window
+                    ],
+                    context: this.angular.scope.graph
                 }
             ],
             'angular': [
