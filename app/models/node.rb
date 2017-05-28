@@ -20,6 +20,13 @@ class Node < ApplicationRecord
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
   end
 
+  def icon=(val)
+    if val.nil?
+      write_attribute('icon', nil)
+    elsif val.is_a?(String)
+      write_attribute('icon', val.codepoints.first.ord)
+    end
+  end
 
   def to_obj
     result = {
@@ -34,6 +41,16 @@ class Node < ApplicationRecord
     if vis_shape.nil? || vis_shape.empty?
       unless primary_tag.nil? || primary_tag.shape.nil?
         result.delete(:shape)
+      end
+    elsif vis_shape.eql?('icon')
+      result.delete(:shape)
+      unless icon.nil?
+        result[:shape] = 'icon'
+        result[:icon] = {
+            :face => 'FontAwesome',
+            :code => [icon].pack('U')
+        }
+        result[:_icon] = result[:icon][:code]
       end
     end
     result

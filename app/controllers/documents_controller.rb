@@ -4,6 +4,8 @@ class DocumentsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_document, only: [:show, :update, :edit, :destroy]
 
+
+
   # GET /documents
   # GET /documents.json
   def index
@@ -217,6 +219,8 @@ class DocumentsController < ApplicationController
           node.cluster = nil
         end
 
+        node.icon = node_obj[:_icon] if node_obj.has_key?(:_icon)
+
         node.save!
 
       end
@@ -344,7 +348,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster, :_icon],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id, :color, :shape, :title],
                                       :clusters => [:id, :label, :graph_id, :color, :shape])

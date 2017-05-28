@@ -4,6 +4,8 @@
 
     var ANGULAR = angular.module('graph.editor', []);
 
+    window.FONT_AWESOME = [];
+
     function Vis() {
 
         var _this = this;
@@ -654,8 +656,11 @@
             'database',
             'circle',
             'ellipse',
-            'text'
+            'text',
+            'icon'
         ];
+
+        this.icons = [];
 
         this.defaults = {
             shape: this.shapes[0]
@@ -695,8 +700,17 @@
         if (this.current !== null) {
 
             if (this.current.hasOwnProperty('shape') &&
-                (this.current.shape === undefined || this.current.shape === null || this.current.shape === ''))
+                (this.current.shape === undefined || this.current.shape === null || this.current.shape === '')) {
                 delete this.current['shape'];
+            } else if (this.current.shape === 'icon' && this.current.hasOwnProperty('_icon') && this.current._icon !== undefined &&
+                        this.current._icon !== null) {
+
+                this.current.icon = {
+                    face: 'FontAwesome',
+                    code: this.current._icon
+                };
+
+            }
 
             scope.vis.data.nodes.update(this.current);
 
@@ -897,6 +911,14 @@
             _this.angular.scope.vis.destroy();
         });
 
+        $service.icons(function(icons) {
+            icons.forEach(function(icon) {
+                _this.angular.scope.node.icons.push(icon);
+            });
+        }, function(err) {
+            console.log(err);
+        });
+
     }
 
     Controller.prototype.__initialize = function(route) {
@@ -1026,6 +1048,15 @@
         this.http = $http;
     }
 
+    Service.prototype.icons = function(successCallback, errorCallback) {
+        var _this = this;
+        this.http.get('/icons.json').then(function(successResponse) {
+            if (successCallback !== undefined && successCallback !== null) successCallback.apply(_this, [successResponse.data]);
+        }, function(errorResponse) {
+            if (errorCallback !== undefined && errorCallback !== null) errorCallback.apply(_this, [errorResponse]);
+        });
+    };
+
     Service.prototype.load  = function(id, callback, errorCallback) {
         var _this = this;
         this.http.get('/documents/' + id + '.json').then(function(successResponse) {
@@ -1072,6 +1103,7 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
+                                _icon: node.hasOwnProperty('_icon') ? node['_icon'] : null,
                                 cluster: node.cluster,
                                 tags: node.tags,
                                 group: node.group
@@ -1160,6 +1192,5 @@
 
     ANGULAR.service('graphService', ['$http', Service]);
     ANGULAR.controller('graphController', ['$scope', '$rootScope', '$route', '$window', '$timeout', 'graphService', Controller]);
-
 
 })();

@@ -1,8 +1,10 @@
 <div class="panel-body">
+    <h4>Node: {{node.current.id}}</h4>
     <div class="form-group">
         <label for="edit_node_label">Label</label>
         <input id="edit_node_label" type="text" class="form-control" data-ng-model="node.current.label" />
     </div>
+
     <div class="form-group">
         <label for="edit_node_shape">Shape</label>
         <select id="edit_node_shape" class="form-control" data-ng-model="node.current.shape">
@@ -10,6 +12,20 @@
             <option data-ng-repeat="shape in node.shapes" value="{{shape}}">{{shape}}</option>
         </select>
     </div>
+
+    <div data-ng-show="node.current.shape === 'icon'" class="ng-hide">
+        <div class="form-group text-center">
+            <i class="fa-3x no-fa">{{node.current._icon}}</i>
+        </div>
+        <div class="form-group">
+            <label for="">Icon:</label>
+            <select id="" class="form-control" data-ng-model="node.current._icon">
+                <option value></option>
+                <option data-ng-repeat="icon in node.icons" data-ng-value="icon.code">{{icon.name}}</option>
+            </select>
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="edit_node_tag">Tags</label>
         <select multiple id="edit_node_tag" class="form-control" data-ng-model="node.current.tags">

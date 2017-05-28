@@ -25,6 +25,15 @@ body #main-body {
     position:absolute; top: 70px; bottom: 10px; left: 20px; right: 20px; overflow-y: scroll;
 }
 
+body i.no-fa {
+    font-family: 'FontAwesome' !important; font-style:normal !important;
+}
+
+body option i.no-fa {
+    font-size: 16em; font-family: 'FontAwesome' !important; font-style:normal !important;
+
+}
+
 body #main-body > * {
     overflow: hidden;
 }
