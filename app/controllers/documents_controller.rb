@@ -111,6 +111,9 @@ class DocumentsController < ApplicationController
           clusters[cluster_obj[:id]] = cluster
         end
 
+        cluster.import cluster_obj
+
+=begin
         cluster.label = cluster_obj[:label] unless cluster_obj[:label].nil? or cluster.label.eql?(cluster_obj[:label])
 
         if cluster_obj.has_key?(:color) && !cluster.color.eql?(cluster_obj[:color]) && !(cluster_obj[:color].match(%r{\A#(\h{6}|\h{3}|\h)\z}).nil?)
@@ -118,6 +121,7 @@ class DocumentsController < ApplicationController
         end
 
         cluster.shape = cluster_obj[:shape] unless !(cluster_obj.has_key?(:shape)) or cluster_obj[:shape].nil? or cluster.shape.eql?(cluster_obj[:shape])
+=end
 
         cluster.save!
 
@@ -138,6 +142,9 @@ class DocumentsController < ApplicationController
           tags[tag_obj[:id]] = tag
         end
 
+        tag.import tag_obj
+
+=begin
         tag.name = tag_obj[:name] unless tag_obj[:name].nil? or tag.name.eql?(tag_obj[:name])
 
         if tag_obj.has_key?(:color) && !tag.color.eql?(tag_obj[:color]) && !(tag_obj[:color].match(%r{\A#(\h{6}|\h{3}|\h)\z}).nil?)
@@ -147,17 +154,13 @@ class DocumentsController < ApplicationController
         if tag_obj.has_key?(:shape) && !tag.shape.eql?(tag_obj[:shape])
           tag.shape = tag_obj[:shape]
         end
-
-        if tag_obj.has_key?(:title) && !tag.title.eql?(tag_obj[:title])
-          tag.title = tag_obj[:title]
-        end
+=end
 
         tag.save!
 
       end
 
     end
-
 
     params[:document][:nodes].each do |node_obj|
 
@@ -173,7 +176,7 @@ class DocumentsController < ApplicationController
         end
 
         node.label = node_obj[:label] unless node_obj[:label].nil? || node.label.eql?(node_obj[:label])
-        node.vis_shape = node_obj[:shape] unless node_obj[:shape].nil? || node.vis_shape.eql?(node_obj[:shape])
+        node.shape = node_obj[:shape] unless node_obj[:shape].nil? || node.shape.eql?(node_obj[:shape])
 
         if node_obj.has_key?(:tags) && node_obj[:tags].length > 0
 
@@ -219,7 +222,7 @@ class DocumentsController < ApplicationController
           node.cluster = nil
         end
 
-        node.icon = node_obj[:_icon] if node_obj.has_key?(:_icon)
+        node.icon = node_obj[:icon] if node_obj.has_key?(:icon)
 
         node.save!
 
@@ -287,71 +290,16 @@ class DocumentsController < ApplicationController
       @document = Document.includes(:graphs => [:nodes => [:node_tags => [:tag]], :edges => [:node_from, :node_to], :tags => [], :clusters => []]).joins(:user).where(user: current_user).find(params[:id])
     end
 
-      # query document from the database and create a structure that is conducive to serialization
-    def query_document
-
-      graphs = {}
-      seen = {}
-
-      document = Document.deep_query(current_user, params)
-
-      document.graphs.each do |g|
-        unless graphs.has_key? g.vis_id
-          graphs[g.vis_id] = {
-              :id => g.vis_id,
-              :nodes => [],
-              :edges => [],
-              :tags => []
-          }
-        end
-      end
-
-      document.nodes.each do |node|
-
-        node_data = node.to_obj
-        graph_id = node_data[:graph_id]
-
-        unless graphs.has_key? graph_id
-          graphs[graph_id] = {
-              :id => graph_id,
-              :nodes => [],
-              :edges => [],
-              :tags => []
-          }
-        end
-
-        graphs[graph_id][:nodes] << node_data
-
-      end
-
-      document.edges.each do |edge|
-
-        edge_data = edge.to_obj
-
-        unless seen.has_key? edge
-          seen[edge] = true
-          graphs[edge_data[:graph_id]][:edges] << edge_data
-        end
-
-      end
-
-      document.tags.each do |t|
-        tag_data = t.to_obj
-        graphs[tag_data[:graph_id]][:tags] << tag_data
-      end
-
-      result = {:id => document.id, :title => document.title, :graphs => graphs.values}
-    end
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def document_params
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster, :_icon],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster, :icon],
                                        :edges => [:id, :graph_id, :label, :from, :to],
-                                        :tags => [:id, :name, :graph_id, :color, :shape, :title],
-                                      :clusters => [:id, :label, :graph_id, :color, :shape])
+                                        :tags => [:id, :name, :graph_id, :color, :shape, :icon],
+                                      :clusters => [:id, :title, :label, :graph_id, :color, :shape, :icon])
     end
 
   protected

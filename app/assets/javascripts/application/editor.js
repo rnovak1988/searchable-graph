@@ -4,8 +4,6 @@
 
     var ANGULAR = angular.module('graph.editor', []);
 
-    window.FONT_AWESOME = [];
-
     function Vis() {
 
         var _this = this;
@@ -188,13 +186,24 @@
 
         if (this.current !== null && this.current.tags !== undefined && this.current.tags !== null) {
             this.current.tags.forEach(function(tag) {
-                ['color', 'shape', 'title'].forEach(function(property) {
+                ['color', 'shape'].forEach(function(property) {
                    if (tag.hasOwnProperty(property) && tag[property] !== undefined && tag[property] !== null) {
                        if (!options.groups.hasOwnProperty(tag.id)) options.groups[tag.id] = {};
 
                        options.groups[tag.id][property] = tag[property];
                    }
                 });
+
+                if (tag.hasOwnProperty('_icon') && tag._icon !== undefined && tag._icon !== null) {
+                    options.groups[tag.id]['shape'] = 'icon';
+                    options.groups[tag.id]['icon'] = {
+                        face: 'FontAwesome',
+                        code: tag._icon
+                    };
+                    if (tag.hasOwnProperty('color') && tag.color !== undefined && tag.color !== null) {
+                        options.groups[tag.id]['icon']['color'] = tag.color;
+                    }
+                }
             });
         }
         try{
@@ -255,6 +264,17 @@
                     && cluster[prop] !== '')
                     options.clusterNodeProperties[prop] = cluster[prop];
             });
+
+            if (cluster.hasOwnProperty('_icon') && cluster._icon !== undefined && cluster._icon !== null) {
+                options.clusterNodeProperties['shape'] = 'icon';
+                options.clusterNodeProperties['icon'] = {
+                    face: 'FontAwesome',
+                    code: cluster._icon
+                };
+                if (cluster.hasOwnProperty('color') && cluster.color !== undefined && cluster.color !== null) {
+                    options.clusterNodeProperties['icon']['color'] = cluster.color;
+                }
+            }
 
             this.handle.cluster(options);
 
@@ -596,8 +616,8 @@
             id: vis.util.randomUUID(),
             graph_id: graph_id,
             name: null,
-            title: null,
-            shape: null
+            shape: null,
+            icon: null
         };
     };
 
@@ -631,7 +651,8 @@
             id:     id,
             label:  id,
             shape:  null,
-            color:  null
+            color:  null,
+            icon:   null
         };
     };
 
@@ -710,6 +731,9 @@
                     code: this.current._icon
                 };
 
+            } else {
+                delete this.current['icon'];
+                delete this.current['_icon'];
             }
 
             scope.vis.data.nodes.update(this.current);
@@ -1103,7 +1127,7 @@
                                 graph_id: graph.id,
                                 label: node.label,
                                 shape: node.shape,
-                                _icon: node.hasOwnProperty('_icon') ? node['_icon'] : null,
+                                icon: node.hasOwnProperty('_icon') ? node['_icon'] : null,
                                 cluster: node.cluster,
                                 tags: node.tags,
                                 group: node.group
@@ -1129,7 +1153,7 @@
                                 graph_id: graph.id,
                                 color: tag.color,
                                 shape: tag.shape,
-                                title: tag.title
+                                icon: tag.hasOwnProperty('_icon') ? tag['_icon'] : null
                             });
                         }
 
@@ -1140,7 +1164,8 @@
                                 graph_id: graph.id,
                                 color: cluster.color,
                                 shape: cluster.shape,
-                                label: cluster.label
+                                label: cluster.label,
+                                icon: cluster.hasOwnProperty('_icon') ? cluster['_icon'] : null
                             });
                         }
 

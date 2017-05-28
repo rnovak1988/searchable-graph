@@ -1,4 +1,4 @@
-class Node < ApplicationRecord
+class Node < VisObject
   belongs_to :graph
 
   has_many :edges_from, :class_name => Edge, foreign_key: :node_from_id, dependent: :destroy
@@ -18,6 +18,14 @@ class Node < ApplicationRecord
 
   def edges
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
+  end
+
+  def vis_shape=(shp)
+    shape=(shp)
+  end
+
+  def vis_shape
+    shape
   end
 
   def icon=(val)

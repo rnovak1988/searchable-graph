@@ -1,4 +1,4 @@
-class Graph < ApplicationRecord
+class Graph < VisObject
   belongs_to :document
 
   has_many :clusters

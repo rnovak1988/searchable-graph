@@ -26,19 +26,22 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <label for="edit_node_tag">Tags</label>
-        <select multiple id="edit_node_tag" class="form-control" data-ng-model="node.current.tags">
-            <option data-ng-repeat="tag in graph.current.tags" data-ng-value="tag.id">{{tag.name}}</option>
-        </select>
+    <div data-ng-show="graph.current.tags.length > 0" class="ng-hide">
+        <div class="form-group">
+            <label for="edit_node_tag">Tags</label>
+            <select multiple id="edit_node_tag" class="form-control" data-ng-model="node.current.tags">
+                <option data-ng-repeat="tag in graph.current.tags" data-ng-value="tag.id">{{tag.name}}</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="edit_node_group">Primary Tag</label>
+            <select id="edit_node_group" class="form-control" data-ng-model="node.current.group">
+                <option value></option>
+                <option data-ng-repeat="tag in graph.current.tags | filter: node.hasTag" data-ng-value="tag.id">{{tag.name}}</option>
+            </select>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="edit_node_group">Primary Tag</label>
-        <select id="edit_node_group" class="form-control" data-ng-model="node.current.group">
-            <option value></option>
-            <option data-ng-repeat="tag in graph.current.tags | filter: node.hasTag" data-ng-value="tag.id">{{tag.name}}</option>
-        </select>
-    </div>
+
     <div class="form-group">
         <label for="edit-node-cluster">Cluster</label>
         <select id="edit-node-cluster" class="form-control" data-ng-model="node.current.cluster">

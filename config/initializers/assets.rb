@@ -12,6 +12,7 @@ Rails.application.config.assets.version = '1.0'
 Rails.application.config.assets.precompile += %w( angular/* )
 Rails.application.config.assets.precompile += %w( bootstrap* )
 Rails.application.config.assets.precompile += %w( vis* )
+Rails.application.config.assets.precompile += %w( font-awesome* )
 
 Rails.application.config.assets.precompile += %w( devise.css )
 Rails.application.config.assets.precompile += %w( documents.js )

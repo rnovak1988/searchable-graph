@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170528002428) do
+ActiveRecord::Schema.define(version: 20170528220258) do
 
   create_table "clusters", id: :string, limit: 36, force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string   "shape"
@@ -19,6 +19,7 @@ ActiveRecord::Schema.define(version: 20170528002428) do
     t.datetime "created_at",            null: false
     t.datetime "updated_at",            null: false
     t.string   "graph_id",   limit: 36
+    t.integer  "icon"
     t.index ["graph_id"], name: "fk_rails_8fbc508575", using: :btree
   end
 
@@ -72,7 +73,7 @@ ActiveRecord::Schema.define(version: 20170528002428) do
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
     t.string   "graph_id",       limit: 36
-    t.string   "vis_shape"
+    t.string   "shape"
     t.string   "primary_tag_id"
     t.string   "cluster_id",     limit: 36
     t.integer  "icon"
@@ -89,7 +90,7 @@ ActiveRecord::Schema.define(version: 20170528002428) do
     t.string   "graph_id",   limit: 36
     t.string   "color"
     t.string   "shape"
-    t.string   "title"
+    t.integer  "icon"
     t.index ["graph_id"], name: "fk_rails_49d2d80cd8", using: :btree
     t.index ["id"], name: "index_tags_on_id", using: :btree
   end
