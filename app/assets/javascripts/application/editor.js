@@ -409,7 +409,15 @@
 
         this.open_clusters = new vis.DataSet([]);
 
-        [this.__tabClass, this.__addCluster, this.__collapseClusters, this.__openCluster, this.__openAllClusters].forEach(function(method) {
+        [
+            this.__tabClass,
+            this.__addCluster,
+            this.__collapseClusters,
+            this.__openCluster,
+            this.__openAllClusters,
+            this.__openSearch,
+            this.__cancelSearch
+        ].forEach(function(method) {
             _this[method.name] = function() {
                 return method.apply(_this, arguments);
             };
@@ -470,7 +478,7 @@
         return this.open_clusters.length > 0;
     };
 
-    Graph.prototype.__openAllClusters = function openAllClusters(event, scope, window) {
+    Graph.prototype.__openAllClusters = function openAllClusters(scope, window) {
         var _this = this;
         _this.current.clusters.forEach(function(cluster) {
             if (_this.open_clusters.get(cluster.id) === null) {
@@ -480,7 +488,7 @@
         });
     };
 
-    Graph.prototype.__collapseClusters = function collapseClusters(event, scope, window) {
+    Graph.prototype.__collapseClusters = function collapseClusters(scope, window) {
 
         this.open_clusters.forEach(function(cluster) {
             scope.vis.syncCluster(cluster);
@@ -506,6 +514,24 @@
         var cluster = Cluster.newCluster();
         this.current.clusters.push(cluster);
         this.cluster.select(cluster);
+    };
+
+    Graph.prototype.__openSearch = function openSearch(scope, window) {
+        this.previous_state = scope.state;
+        scope.state = window.GRAPH_STATE.SEARCH_GRAPH;
+    };
+
+    Graph.prototype.__cancelSearch = function cancelSearch(scope, window) {
+        if (this.previous_state !== null) {
+            scope.state = this.previous_state;
+        } else {
+            scope.state = window.GRAPH_STATE.BASE;
+        }
+        this.previous_state = null;
+    };
+
+    Graph.prototype.__search = function(scope, window) {
+
     };
 
     Graph.prototype.import = function(document, index) {
@@ -927,6 +953,24 @@
                     ref: this.angular.scope.document.saveRename,
                     args: [this.angular.root, this.angular.scope, this.angular.window],
                     context: this.angular.scope.document
+                },
+                {
+                    event: 'openSearch',
+                    ref: this.angular.scope.graph.__openSearch,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
+                },
+                {
+                    event: 'cancelSearch',
+                    ref: this.angular.scope.graph.__cancelSearch,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
+                },
+                {
+                    event: 'search',
+                    ref: this.angular.scope.graph.__search,
+                    args: [this.angular.scope, this.angular.window],
+                    context: this.angular.scope.graph
                 }
             ]
         };

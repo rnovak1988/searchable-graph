@@ -11,7 +11,7 @@
         <div id="graph-options-container">
             <div class="btn-container">
                 <div title="options" class="btn btn-default" data-ng-click="editOptions()"><span class="glyphicon glyphicon-cog"></span></div>
-                <div title="search" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></div>
+                <div title="search" class="btn btn-default" data-ng-click="openSearch()"><span class="glyphicon glyphicon-search"></span></div>
                 <div data-ng-show="graph.hasOpenClusters(vis)" title="collapse all" class="btn btn-default" data-ng-click="collapseClusters()"><span class="glyphicon glyphicon-resize-small"></span></div>
                 <div data-ng-show="graph.hasClosedClusters(vis)" title="expand all" class="btn btn-default" data-ng-click="expandClusters()"><span class="glyphicon glyphicon-resize-full"></span></div>
             </div>
@@ -26,3 +26,4 @@
 </div>
 <div id="graph-options-overlay" data-ng-include="'/templates/graph-options.html'" data-ng-show="state === GRAPH_STATE.EDIT_OPTIONS" data-ng-click="cancelOptions()" class="editor-overlay ng-hide"></div>
 <div id="rename-overlay" data-ng-include="'/templates/graph-rename.html'" data-ng-show="state === GRAPH_STATE.RENAME_DOCUMENT" class="editor-overlay ng-hide" data-ng-click="cancelRename()"></div>
+<div id="graph-search-overlay" data-ng-include="'/templates/graph-search.html'" data-ng-show="state === GRAPH_STATE.SEARCH_GRAPH" class="editor-overlay ng-hide" data-ng-click="cancelSearch()" ></div>
