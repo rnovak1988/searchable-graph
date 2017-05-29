@@ -178,6 +178,11 @@ class DocumentsController < ApplicationController
         node.label = node_obj[:label] unless node_obj[:label].nil? || node.label.eql?(node_obj[:label])
         node.shape = node_obj[:shape] unless node_obj[:shape].nil? || node.shape.eql?(node_obj[:shape])
 
+        if node_obj.has_key?(:x) and node_obj.has_key?(:y)
+          node.x = node_obj[:x]
+          node.y = node_obj[:y]
+        end
+
         if node_obj.has_key?(:tags) && node_obj[:tags].length > 0
 
           node.node_tags.each do |node_tag|
@@ -296,7 +301,7 @@ class DocumentsController < ApplicationController
 
       params.require(:document).permit(:id, :title, :removed_edges, :removed_nodes,
                                        :graphs => [:id],
-                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster, :icon],
+                                       :nodes => [:id, :graph_id, :label, :shape, :tags, :group, :cluster, :icon, :x, :y],
                                        :edges => [:id, :graph_id, :label, :from, :to],
                                         :tags => [:id, :name, :graph_id, :color, :shape, :icon],
                                       :clusters => [:id, :title, :label, :graph_id, :color, :shape, :icon])

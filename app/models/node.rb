@@ -28,8 +28,13 @@ class Node < VisObject
         :graph_id => graph_id,
         :tags     => node_tags.map(&:tag_id),
         :group    => primary_tag_id,
+        :x        => x,
+        :y        => y,
         :cluster  => cluster_id
     }
+
+    result.delete(:x) if result[:x].nil?
+    result.delete(:y) if result[:y].nil?
 
     unless shape.nil? or shape.empty?
       result[:shape] = shape

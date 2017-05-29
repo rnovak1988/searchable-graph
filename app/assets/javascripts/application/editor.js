@@ -72,15 +72,10 @@
                 }
             },
             layout: {
-                randomSeed: 849696
+                randomSeed: 8
             },
             physics: {
-                enabled: true,
-                stabilization: false,
-                barnesHut: {
-                    gravitationalConstant: -3500,
-                    springLength: 115
-                }
+                enabled: true
             }
         };
 
@@ -104,6 +99,10 @@
             return _this.__syncCluster.apply(_this, arguments);
         }
 
+        this.updateCluster = function() {
+            _this.__updateCluster.apply(_this, arguments);
+        };
+
     }
 
     Vis.prototype.load = function(document, graph) {
@@ -124,8 +123,15 @@
             if (!this.current.hasOwnProperty('removed_edges'))
                 this.current.removed_edges = [];
 
-            this.data.nodes.add(this.current.nodes);
-            this.data.edges.add(this.current.edges);
+            var data = {
+                nodes: new vis.DataSet(this.current.nodes),
+                edges: new vis.DataSet(this.current.edges),
+                tags: new vis.DataSet([]),
+                clusters: new vis.DataSet([])
+            };
+
+            this.data = data;
+            this.handle.setData(this.data);
             this.data.tags.add(this.current.tags);
 
             this.syncGroups();
@@ -171,6 +177,8 @@
 
         if (this.current !== null) {
 
+            this.handle.storePositions();
+
             this.current.nodes = this.data.nodes.get();
             this.current.edges = this.data.edges.get();
 
@@ -196,7 +204,6 @@
 
 
                 if (tag.hasOwnProperty('_icon') && tag._icon !== undefined && tag._icon !== null) {
-                    console.log(tag);
                     options.groups[tag.id]['shape'] = 'icon';
                     options.groups[tag.id]['icon'] = {
                         face: 'FontAwesome',
@@ -205,7 +212,6 @@
                     if (tag.hasOwnProperty('color') && tag.color !== undefined && tag.color !== null) {
                         options.groups[tag.id]['icon']['color'] = tag.color;
                     }
-                    console.log(options);
                 }
             });
         }
@@ -233,8 +239,13 @@
     Vis.prototype.__syncClusters = function() {
         var _this = this;
         if (this.current !== null && this.current.hasOwnProperty('clusters')) {
+            this.handle.setData(this.data);
             this.current.clusters.forEach(function(cluster) {
-                _this.__syncCluster(cluster);
+                if (_this.handle.clustering.isCluster(cluster.id)) {
+                    _this.updateCluster(cluster);
+                } else {
+                    _this.syncCluster(cluster);
+                }
             });
         }
     };
@@ -242,23 +253,15 @@
     Vis.prototype.__syncCluster = function(cluster) {
         if (cluster !== undefined && cluster !== null) {
 
-            var container = this.data.clusters.get(cluster.id);
-            var options = container !== null ? container.value : null;
+            var options = {
+                joinCondition: function (node) {
+                    return node.cluster === cluster.id;
+                },
+                clusterNodeProperties: {
+                    allowSingleNodeCluster: true
+                }
+            };
 
-            if (options === null) {
-
-                options = {
-                    joinCondition: function (node) {
-                        return node.hasOwnProperty('cluster') && node.cluster === cluster.id;
-                    },
-                    clusterNodeProperties: {
-                        allowSingleNodeCluster: true
-                    }
-                };
-
-                this.data.clusters.add({id: cluster.id, value: options});
-
-            }
 
             ['id', 'color', 'shape', 'label'].forEach(function (prop) {
                 if (cluster.hasOwnProperty(prop)
@@ -279,11 +282,30 @@
                 }
             }
 
-            this.handle.cluster(options);
+            var _this = this;
+            var nodes = null;
 
-            if (this.data.nodes.get({filter: function(node) {return node.cluster === cluster.id; }}).length > 0)
-                this.handle.clustering.updateClusteredNode(cluster.id, options.clusterNodeProperties);
+            this.handle.clustering.cluster(options);
 
+        }
+    };
+
+    Vis.prototype.__updateCluster = function(cluster) {
+        if (cluster !== undefined && cluster !== null) {
+            if (this.handle.clustering.isCluster(cluster.id)) {
+
+                if (cluster.shape === 'icon' && cluster.hasOwnProperty('_icon')) {
+                    cluster.icon = {
+                        face: 'FontAwesome',
+                        code: cluster._icon
+                    };
+                    if (cluster.hasOwnProperty('color') && cluster['color'] !== undefined && cluster['color'] !== null
+                        && cluster['color'] !== '')
+                        cluster.icon.color = cluster['color'];
+                }
+
+                this.handle.clustering.updateClusteredNode(cluster.id, cluster);
+            }
         }
     };
 
@@ -416,7 +438,8 @@
             this.__openCluster,
             this.__openAllClusters,
             this.__openSearch,
-            this.__cancelSearch
+            this.__cancelSearch,
+            this.__syncClusters
         ].forEach(function(method) {
             _this[method.name] = function() {
                 return method.apply(_this, arguments);
@@ -478,7 +501,7 @@
         return this.open_clusters.length > 0;
     };
 
-    Graph.prototype.__openAllClusters = function openAllClusters(scope, window) {
+    Graph.prototype.__openAllClusters = function openAllClusters(event, scope, window) {
         var _this = this;
         _this.current.clusters.forEach(function(cluster) {
             if (_this.open_clusters.get(cluster.id) === null) {
@@ -488,7 +511,7 @@
         });
     };
 
-    Graph.prototype.__collapseClusters = function collapseClusters(scope, window) {
+    Graph.prototype.__collapseClusters = function collapseClusters(event, scope, window) {
 
         this.open_clusters.forEach(function(cluster) {
             scope.vis.syncCluster(cluster);
@@ -499,9 +522,14 @@
 
     Graph.prototype.__openCluster = function openCluster(clusterId, scope, window) {
         var cluster = null;
-        if ((cluster = scope.vis.data.clusters.get(clusterId)) !== null) {
-            this.open_clusters.add(cluster);
-            scope.vis.handle.openCluster(cluster.id);
+        var _this = this;
+        if (this.current !== null && this.current.hasOwnProperty('clusters')) {
+            this.current.clusters.forEach(function(cluster) {
+                if (cluster.id === clusterId) {
+                    _this.open_clusters.add(cluster);
+                    scope.vis.handle.clustering.openCluster(clusterId);
+                }
+            });
         }
     };
 
@@ -534,6 +562,18 @@
 
     };
 
+    Graph.prototype.__syncClusters = function syncClusters(scope, window) {
+        var _this = this;
+        if (this.current !== undefined && this.current !== null && this.current.hasOwnProperty('clusters')) {
+            scope.vis.handle.setData(scope.vis.data);
+            this.current.clusters.forEach(function(cluster) {
+                if (_this.open_clusters.get(cluster.id) === null) {
+                    scope.vis.syncCluster(cluster);
+                }
+            });
+        }
+    };
+
     Graph.prototype.import = function(document, index) {
 
         if (document !== undefined && document !== null && document instanceof Document &&
@@ -544,6 +584,8 @@
 
             this.index = index;
             this.current = document.current.graphs[index];
+            this.open_clusters.clear();
+
 
             if (this.current !== null) {
                 this.current.backup_tags = [];
@@ -593,10 +635,10 @@
         this.current.backup_clusters = [];
         $.extend(true, this.current.backup_clusters, this.current.clusters);
 
+        scope.vis.handle.setData(scope.vis.data);
         scope.vis.syncGroups();
 
         this.current.clusters.forEach(function(cluster) {
-            console.log(_this.open_clusters.get(cluster.id));
             if (_this.open_clusters.get(cluster.id) === null) {
                 scope.vis.syncCluster(cluster);
             }
@@ -726,12 +768,14 @@
 
         var node_id = event.nodes[0];
 
-        if (this.current !== null)
+        if (this.current !== undefined && this.current !== null && this.current.hasOwnProperty('id'))
             this.update(event, scope, window);
 
         if (scope.vis.handle.isCluster(node_id)) {
 
             scope.graph.openCluster(node_id, scope, window);
+            scope.vis.handle.unselectAll();
+
             scope.state = window.GRAPH_STATE.BASE;
 
         } else {
@@ -751,34 +795,30 @@
 
             if (this.current.hasOwnProperty('shape') &&
                 (this.current.shape === undefined || this.current.shape === null || this.current.shape === '')) {
-                delete this.current['shape'];
-            } else if (this.current.shape === 'icon' && this.current.hasOwnProperty('_icon') && this.current._icon !== undefined &&
-                        this.current._icon !== null) {
 
-                this.current.icon = {
-                    face: 'FontAwesome',
-                    code: this.current._icon
-                };
+                this.current.shape = undefined;
+
+                scope.vis.data.nodes.update(this.current);
+
+                delete this.current['shape'];
 
             } else {
-                delete this.current['icon'];
-                delete this.current['_icon'];
+                if (this.current.shape === 'icon' && this.current.hasOwnProperty('_icon') && this.current._icon !== undefined &&
+                    this.current._icon !== null) {
+
+                    this.current.icon = {
+                        face: 'FontAwesome',
+                        code: this.current._icon
+                    };
+                    scope.vis.data.nodes.update(this.current);
+
+                }
             }
 
             scope.vis.data.nodes.update(this.current);
 
-            if (this.current.hasOwnProperty('backup_cluster')) {
-
-                var _this = this;
-
-                scope.graph.current.clusters.forEach(function(cluster) {
-                    if ((cluster.id === _this.current.cluster ||
-                        cluster.id === _this.current.backup_clusters) &&
-                        scope.graph.open_clusters.get(cluster.id) === null)
-                        scope.vis.syncCluster(cluster);
-                });
-
-                this.current.backup_cluster = null;
+            if (this.current.hasOwnProperty('cluster')) {
+                scope.graph.syncClusters(scope, window);
             }
 
             this.current = null;
@@ -786,6 +826,7 @@
             if (scope.state === window.GRAPH_STATE.EDIT_NODE)
                 scope.state = window.GRAPH_STATE.BASE;
         }
+        this.current = null;
 
     };
 
@@ -813,7 +854,6 @@
 
     Edge.prototype.update = function(event, scope, window) {
 
-        console.log('in edge update');
 
         if (this.current !== null) {
             scope.vis.data.edges.update(this.current);
@@ -1100,6 +1140,8 @@
 
                 this.angular.scope.vis.load(this.angular.scope.document, this.angular.scope.graph);
 
+                this.__initializeVis();
+
                 this.angular.scope.vis.fit();
             }
         }
@@ -1125,7 +1167,10 @@
         if (typeof(Storage) !== 'undefined') {
             var iconStr = localStorage.getItem('graph.font-awesome.icons');
             if (iconStr !== undefined && iconStr !== null) {
-
+                var icons = JSON.parse(iconStr);
+                if (icons !== undefined && icons !== null && icons instanceof Array)
+                    if (successCallback !== undefined && successCallback !== null)
+                        successCallback.apply(_this, [icons]);
             } else {
                 this.http.get('/icons.json').then(function(successResponse) {
                     var icons = successResponse.data;
@@ -1195,6 +1240,8 @@
                                 shape: node.shape,
                                 icon: node.hasOwnProperty('_icon') ? node['_icon'] : null,
                                 cluster: node.cluster,
+                                x: node['x'],
+                                y: node['y'],
                                 tags: node.tags,
                                 group: node.group
                             });
