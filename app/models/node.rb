@@ -1,4 +1,6 @@
 class Node < VisObject
+  include Attributes::Vis::Icon
+
   belongs_to :graph
 
   has_many :edges_from, :class_name => Edge, foreign_key: :node_from_id, dependent: :destroy
@@ -13,27 +15,10 @@ class Node < VisObject
   belongs_to :primary_tag, :class_name => Tag, :optional => true
   belongs_to :cluster, :optional => true
 
-
   accepts_nested_attributes_for :node_tags, :allow_destroy => true
 
   def edges
     Edge.where('node_from_id = ? or node_to_id = ?', id, id)
-  end
-
-  def vis_shape=(shp)
-    shape=(shp)
-  end
-
-  def vis_shape
-    shape
-  end
-
-  def icon=(val)
-    if val.nil?
-      write_attribute('icon', nil)
-    elsif val.is_a?(String)
-      write_attribute('icon', val.codepoints.first.ord)
-    end
   end
 
   def to_obj
@@ -41,26 +26,22 @@ class Node < VisObject
         :id       => id,
         :label    => label,
         :graph_id => graph_id,
-        :shape    => vis_shape,
         :tags     => node_tags.map(&:tag_id),
         :group    => primary_tag_id,
         :cluster  => cluster_id
     }
-    if vis_shape.nil? || vis_shape.empty?
-      unless primary_tag.nil? || primary_tag.shape.nil?
-        result.delete(:shape)
-      end
-    elsif vis_shape.eql?('icon')
-      result.delete(:shape)
-      unless icon.nil?
-        result[:shape] = 'icon'
+
+    unless shape.nil? or shape.empty?
+      result[:shape] = shape
+      if result[:shape].eql?('icon') and not icon.nil?
+        result[:_icon] = icon
         result[:icon] = {
             :face => 'FontAwesome',
-            :code => [icon].pack('U')
+            :code => result[:_icon]
         }
-        result[:_icon] = result[:icon][:code]
       end
     end
+
     result
   end
 

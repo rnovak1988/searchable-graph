@@ -194,7 +194,9 @@
                    }
                 });
 
+
                 if (tag.hasOwnProperty('_icon') && tag._icon !== undefined && tag._icon !== null) {
+                    console.log(tag);
                     options.groups[tag.id]['shape'] = 'icon';
                     options.groups[tag.id]['icon'] = {
                         face: 'FontAwesome',
@@ -203,6 +205,7 @@
                     if (tag.hasOwnProperty('color') && tag.color !== undefined && tag.color !== null) {
                         options.groups[tag.id]['icon']['color'] = tag.color;
                     }
+                    console.log(options);
                 }
             });
         }

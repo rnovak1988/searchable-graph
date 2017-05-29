@@ -1,4 +1,5 @@
 class Tag < VisObject
+  include Attributes::Vis::Icon
 
   belongs_to :graph
 
@@ -9,16 +10,16 @@ class Tag < VisObject
     result = {
         :id         => id,
         :graph_id   => graph_id,
+        :shape      => shape,
+        :_icon      => icon,
+        :icon       => {
+            :face => 'FontAwesome'
+        },
         :name       => name,
         :color      => color
     }
 
-    if icon.nil?
-      result[:shape] = shape unless shape.eql?('icon')
-    else
-      result[:shape] = 'icon'
-      result[:_icon] = [icon].pack('U')
-    end
+    result[:icon][:code] = result[:_icon]
 
     return result
   end
