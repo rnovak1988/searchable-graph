@@ -1077,11 +1077,30 @@
 
     Service.prototype.icons = function(successCallback, errorCallback) {
         var _this = this;
-        this.http.get('/icons.json').then(function(successResponse) {
-            if (successCallback !== undefined && successCallback !== null) successCallback.apply(_this, [successResponse.data]);
-        }, function(errorResponse) {
-            if (errorCallback !== undefined && errorCallback !== null) errorCallback.apply(_this, [errorResponse]);
-        });
+
+        if (typeof(Storage) !== 'undefined') {
+            var iconStr = localStorage.getItem('graph.font-awesome.icons');
+            if (iconStr !== undefined && iconStr !== null) {
+
+            } else {
+                this.http.get('/icons.json').then(function(successResponse) {
+                    var icons = successResponse.data;
+
+                    localStorage.setItem('graph.font-awesome.icons', JSON.stringify(icons));
+
+                    if (successCallback !== undefined && successCallback !== null) successCallback.apply(_this, [successResponse.data]);
+                }, function(errorResponse) {
+                    if (errorCallback !== undefined && errorCallback !== null) errorCallback.apply(_this, [errorResponse]);
+                });
+            }
+        } else {
+            this.http.get('/icons.json').then(function(successResponse) {
+                if (successCallback !== undefined && successCallback !== null) successCallback.apply(_this, [successResponse.data]);
+            }, function(errorResponse) {
+                if (errorCallback !== undefined && errorCallback !== null) errorCallback.apply(_this, [errorResponse]);
+            });
+        }
+
     };
 
     Service.prototype.load  = function(id, callback, errorCallback) {
