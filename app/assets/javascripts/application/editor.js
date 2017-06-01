@@ -112,7 +112,6 @@
             graph !== undefined && graph !== null && graph instanceof Graph) {
 
             this.sync();
-            this.empty();
 
             this.current = graph.current;
 
@@ -123,16 +122,15 @@
             if (!this.current.hasOwnProperty('removed_edges'))
                 this.current.removed_edges = [];
 
-            var data = {
+
+            this.data = {
                 nodes: new vis.DataSet(this.current.nodes),
                 edges: new vis.DataSet(this.current.edges),
-                tags: new vis.DataSet([]),
+                tags: new vis.DataSet(this.current.tags),
                 clusters: new vis.DataSet([])
             };
 
-            this.data = data;
             this.handle.setData(this.data);
-            this.data.tags.add(this.current.tags);
 
             this.syncGroups();
             this.syncClusters();
@@ -140,9 +138,6 @@
         }
     };
 
-    Vis.prototype.fit = function() {
-        this.handle.fit();
-    };
 
     Vis.prototype.listen = function(_this, name, listener) {
         this.handle.on(name, function(event) {
@@ -414,6 +409,8 @@
 
         var _this = this;
 
+        _this.__proto__.instance = _this;
+
         this.STATES = {
             EDIT_TAGS: 'Edit the properties of tags',
             EDIT_CLUSTERS: 'Add/Edit Clusters'
@@ -456,8 +453,9 @@
         };
         */
 
-
     }
+
+    Graph.prototype.instance = null;
 
     Graph.newGraph = function() {
         return {
@@ -469,6 +467,12 @@
             removed_nodes: [],
             removed_edges: []
         };
+    };
+
+    Graph.getCurrent = function() {
+        if (this.prototype.instance !== undefined && this.prototype.instance !== null) return this.prototype.instance.current;
+
+        return null;
     };
 
     Graph.prototype.hasClosedClusters = function(vis) {
@@ -678,29 +682,81 @@
         }
     };
 
-    function Tag() {
-        this.current = null;
+    function GraphEntity() {
+        var _this = this;
+
+        if (_this.__proto__.instance !== undefined && _this.__proto__.instance !== null && _this.__proto__.instance !== _this) return _this.__proto__.instance;
+
+        _this.__proto__.instance = _this;
+
+        _this.current = null;
+
+        Object.keys(GraphEntity.prototype).forEach(function(fnName) {
+            if (fnName.match(/^__/) && _this[fnName] !== undefined && _this[fnName] !== null && typeof(_this[fnName]) === 'function')
+                _this[fnName.replace(/^__/, '')] = function() {
+                    return _this[fnName].apply(_this, arguments);
+                };
+        });
+
+        if (_this.initialize !== undefined && _this.initialize !== null && typeof(_this.initialize) === 'function') _this.initialize.apply(_this, arguments);
     }
 
-    Tag.newTag = function(graph_id) {
+    GraphEntity.create = function() {
+
+        var constructor = function() {
+            var _this = this;
+            GraphEntity.apply(_this, arguments);
+        };
+
+        constructor.prototype = Object.create(GraphEntity.prototype);
+
+        constructor.prototype.parent = GraphEntity;
+        constructor.prototype.instance = null;
+
+        constructor.prototype.constructor = constructor;
+
+        constructor.getCurrent = function() { return ((this.prototype.instance !== undefined && this.prototype.instance !== null) ? this.prototype.instance.current : null); };
+
+        constructor.factoryFunction = function(fn) {
+            var _parent = this.prototype.parent;
+            var _instance = this.prototype.instance;
+            return function() {
+                return fn.apply(_instance, [_parent.newInstance()]);
+            };
+        };
+
+        return constructor;
+    };
+
+    GraphEntity.newInstance = function() {
+        var current_graph = Graph.getCurrent();
         return {
             id: vis.util.randomUUID(),
-            graph_id: graph_id,
-            name: null,
+            graph_id: current_graph !== null ? current_graph.id : null,
+            label: null,
             shape: null,
+            color: null,
             icon: null
         };
     };
 
-    Tag.prototype.select = function(tag) {
-        this.current = tag;
-
+    GraphEntity.prototype.__select = function(entity) {
+        this.current = entity;
     };
 
-    Tag.prototype.class = function(tag) {
-        if (tag === this.current) return 'active';
-        return '';
+    GraphEntity.prototype.__update = function() {
+        var tmp = this.current;
+        this.current = null;
+        return tmp;
     };
+
+    GraphEntity.prototype.__class = function(other) {
+        return this.current === other ? 'active' : '';
+    };
+
+    var Tag = GraphEntity.create();
+
+    Tag.newTag = Tag.factoryFunction(function(parent) { return parent; });
 
     function Cluster() {
         var _this = this;
